@@ -39,7 +39,7 @@
       "containsAds": false,
       "isChildDirected": false,
       "usesPersonalInfo": false,
-
+      "privacyPolicyUrl": "https://raw.githubusercontent.com/SeriesOfUnlikelyExplanations/zenkit-alexa/master/Privacy%20Policy.html"
     },
     "events": {
       "endpoint": {
