@@ -41,7 +41,7 @@
       "usesPersonalInfo": false,
       "locales": {
         "en-US": {
-          "privacyPolicyUrl": "https://raw.githubusercontent.com/SeriesOfUnlikelyExplanations/zenkit-alexa/master/Privacy%20Policy.html"
+          "privacyPolicyUrl": "https://github.com/SeriesOfUnlikelyExplanations/zenkit-alexa/wiki/Privacy-policy-for-the-Alexa-Zenkit-sync-skill"
         }
       }
     },
