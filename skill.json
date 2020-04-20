@@ -7,6 +7,11 @@
           "summary": "Unofficial ZenKit Alexa Shopping List Synchronization Skill",
           "description": "This skill provides Alexa shopping list synchronization with a todo.zenkit.com shopping list with the same name. It will create a zenkit shopping list if one doesn't exist. Right now, this only supports syncing the shopping list, but hoping to expand soon.",
           "largeIconUri": "https://raw.githubusercontent.com/SeriesOfUnlikelyExplanations/zenkit-alexa/master/resources/icons/zenkit-512.jpg"
+          "examplePhrases": [
+            "Alexa, add eggs to shopping list",
+            "Alexa, remove eggs to shopping list",
+            "Alexa, add chicken soup to shopping list"
+          ]
         }
       },
       "isAvailableWorldwide": false,
