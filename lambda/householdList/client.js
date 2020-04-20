@@ -49,8 +49,8 @@ class SyncListClient {
     // Get shopping lists
     const zlists = await this.zenKitClient.getLists();
     // Find shopping list
-    if ('Shopping list' in zlists) {
-      const match = zlists['Shopping list'];
+    if (config.ALEXA_SHOPPING_LIST in zlists) {
+      const match = zlists[config.ALEXA_SHOPPING_LIST];
       const elements =  JSON.parse(await this.zenKitClient.getElements(match.shortId));
       match.titleUuid = elements.find(list => list.name ===  'Title').uuid;
       match.uncompleteId = elements.find(list => list.name ===  'Stage')
