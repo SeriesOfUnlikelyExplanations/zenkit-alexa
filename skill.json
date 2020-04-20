@@ -5,9 +5,8 @@
         "en-US": {
           "name": "ZenKit List Sync",
           "summary": "Unofficial ZenKit Alexa Shopping List Synchronization Skill",
-          "description": "This skill provides Alexa shopping list synchronization with a specific zenkit list.",
-          "smallIconUri": "https://raw.githubusercontent.com/jsetton/alexa-ourgroceries-sync/master/resources/icons/ourgroceries-108.png",
-          "largeIconUri": "https://raw.githubusercontent.com/jsetton/alexa-ourgroceries-sync/master/resources/icons/ourgroceries-512.png"
+          "description": "This skill provides Alexa shopping list synchronization with a todo.zenkit.com shopping list with the same name. It will create a zenkit shopping list if one doesn't exist. Right now, this only supports syncing the shopping list, but hoping to expand soon.",
+          "largeIconUri": "https://raw.githubusercontent.com/SeriesOfUnlikelyExplanations/zenkit-alexa/master/resources/icons/zenkit-512.jpg"
         }
       },
       "isAvailableWorldwide": false,
@@ -34,7 +33,8 @@
       "isExportCompliant": true,
       "containsAds": false,
       "isChildDirected": false,
-      "usesPersonalInfo": false
+      "usesPersonalInfo": false,
+
     },
     "events": {
       "endpoint": {
