@@ -49,7 +49,7 @@ const SkillEventHandler = {
       // Define attributes object
       var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
       const attributes = {
-        userId: handlerInput.requestEnvelope.context.System.user.userId
+        userId: Alexa.getUserId(handlerInput.requestEnvelope)
       };
       // Determine accepted permissions
       const permissions = (handlerInput.requestEnvelope.request.body.acceptedPermissions || []).map(
@@ -79,7 +79,7 @@ const SkillEventHandler = {
         console.info('User attributes have been deleted.');
         // Delete OurGroceries list sync event schedule
         if (handlerInput.context.invokedFunctionArn) { //don't setup sechdule if running locally.
-          await events.deleteSchedule();
+          await events.deleteSchedule(Alexa.getUserId(handlerInput.requestEnvelope));
           console.info('Event schedule has been deleted.');
         };
       }

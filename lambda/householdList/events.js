@@ -16,9 +16,9 @@ const targetId = 'AlexaSyncTarget';
  * Create event rule schedule
  * @return {Promise}
  */
-function createRule() {
+function createRule(userId) {
   const params = {
-    Name: ruleName,
+    Name: ruleName + '_' + userId,
     ScheduleExpression: 'rate(30 minutes)',
     State: 'ENABLED'
   };
@@ -33,7 +33,7 @@ function createRule() {
  */
 function createTarget(functionArn, userId) {
   const params = {
-    Rule: ruleName,
+    Rule: ruleName + '_' + userId,
     Targets: [{
       Id: targetId,
       Arn: functionArn,
@@ -54,9 +54,9 @@ function createTarget(functionArn, userId) {
  * Delete event rule schedule
  * @return {Promise}
  */
-function deleteRule() {
+function deleteRule(userId) {
   const params = {
-    Name: ruleName
+    Name: ruleName + '_' + userId
   };
   return cwevents.deleteRule(params).promise();
 }
@@ -65,9 +65,9 @@ function deleteRule() {
  * Delete event rule target
  * @return {Promise}
  */
-function deleteTarget() {
+function deleteTarget(userId) {
   const params = {
-    Rule: ruleName,
+    Rule: ruleName + '_' + userId,
     Ids: [targetId]
   };
   return cwevents.removeTargets(params).promise();
@@ -78,12 +78,12 @@ function deleteTarget() {
  * @param  {String} ruleArn
  * @return {Promise}
  */
-function addPermission(ruleArn) {
+function addPermission(ruleArn, userId) {
   const params = {
     Action: 'lambda:InvokeFunction',
     FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME,
     Principal: 'events.amazonaws.com',
-    StatementId: ruleName,
+    StatementId: ruleName + '_' + userId,
     SourceArn: ruleArn
   };
   return lambda.addPermission(params).promise();
@@ -93,10 +93,10 @@ function addPermission(ruleArn) {
  * Remote event rule lambda permission
  * @return {Promise}
  */
-function removePermission() {
+function removePermission(userId) {
   const params = {
     FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME,
-    StatementId: ruleName
+    StatementId: ruleName + '_' + userId
   };
   return lambda.removePermission(params).promise();
 }
@@ -108,9 +108,9 @@ function removePermission() {
  * @return {Promise}
  */
 async function createSchedule(functionArn, userId) {
-  const response = await createRule();
+  const response = await createRule(userId);
   await Promise.all([
-    addPermission(response.RuleArn),
+    addPermission(response.RuleArn, userId),
     createTarget(functionArn, userId)
   ]);
 }
@@ -119,12 +119,12 @@ async function createSchedule(functionArn, userId) {
  * Delete event schedule
  * @return {Promise}
  */
-async function deleteSchedule() {
+async function deleteSchedule(userId) {
   await Promise.all([
-    deleteTarget(),
-    removePermission()
+    deleteTarget(userId),
+    removePermission(userId)
   ]);
-  await deleteRule();
+  await deleteRule(userId);
 }
 
 module.exports = {
