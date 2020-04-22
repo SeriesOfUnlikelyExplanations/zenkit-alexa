@@ -5,8 +5,9 @@
         "en-US": {
           "name": "ZenKit List Sync",
           "summary": "Unofficial ZenKit Alexa Shopping List Synchronization Skill",
-          "description": "This skill provides Alexa shopping list synchronization with a todo.zenkit.com shopping list with the same name. It will create a zenkit shopping list if one doesn't exist. Right now, this only supports syncing the shopping list, but hoping to expand soon.",
+          "description": "This skill provides Alexa shopping list synchronization with a todo.zenkit.com list named 'Shopping List'. Right now, this only supports syncing the shopping list, but hoping to expand soon.",
           "largeIconUri": "https://raw.githubusercontent.com/SeriesOfUnlikelyExplanations/zenkit-alexa/master/resources/icons/zenkit-512.png",
+          "smallIconUri": "https://raw.githubusercontent.com/SeriesOfUnlikelyExplanations/zenkit-alexa/master/resources/icons/zenkit-108.png",
           "examplePhrases": [
             "Alexa, add eggs to shopping list",
             "Alexa, remove eggs to shopping list",
@@ -15,8 +16,9 @@
         }
       },
       "isAvailableWorldwide": false,
+      "testingInstructions": "https://github.com/SeriesOfUnlikelyExplanations/zenkit-alexa/wiki/Testing-instructions",
       "category": "ORGANIZERS_AND_ASSISTANTS",
-      "distributionMode": "PRIVATE",
+      "distributionMode": "PUBLIC",
       "distributionCountries": [
         "US"
       ]
@@ -47,10 +49,10 @@
     },
     "events": {
       "endpoint": {
-        "uri": "https://fdadd41d.ngrok.io",
+        "uri": "https://0040be6b.ngrok.io",
         "sslCertificateType": "Wildcard"
       },
-      "subscriptions": [
+    "subscriptions": [
         {
           "eventName": "SKILL_DISABLED"
         },
@@ -59,6 +61,9 @@
         },
         {
           "eventName": "SKILL_PERMISSION_CHANGED"
+        },
+        {
+          "eventName": "SKILL_ACCOUNT_LINKED"
         },
         {
           "eventName": "ITEMS_CREATED"

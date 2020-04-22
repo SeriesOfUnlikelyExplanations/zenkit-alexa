@@ -47,25 +47,33 @@ class SyncListClient {
    */
   async getZenkitLists() {
     // Get shopping lists
-    const zlists = await this.zenKitClient.getLists();
-    // Find shopping list
-    if (config.ALEXA_SHOPPING_LIST in zlists) {
-      const match = zlists[config.ALEXA_SHOPPING_LIST];
-      const elements =  JSON.parse(await this.zenKitClient.getElements(match.shortId));
-      match.titleUuid = elements.find(list => list.name ===  'Title').uuid;
-      match.uncompleteId = elements.find(list => list.name ===  'Stage')
-        .elementData
-        .predefinedCategories
-        .find(list => list.name ===  'To-Do')
-        .id;
-      match.completeId = elements.find(list => list.name ===  'Stage')
-        .elementData
-        .predefinedCategories
-        .find(list => list.name ===  'Done')
-        .id;
-      match.stageUuid = elements.find(list => list.name ===  'Stage').uuid;
-      return match; //TODO: return zlists instead and get all zenkit lists
+    const workspace = await this.zenKitClient.getWorkspace();
+    var zlists = await this.zenKitClient.getLists();
+    //create Shopping List if it doesn't exist
+    if (!(config.ZENKIT_SHOPPING_LIST in zlists)) {
+      console.log('Creating Shopping List');
+      const res = await this.zenKitClient.createList(config.ZENKIT_SHOPPING_LIST, workspace.id);
+      zlists = await this.zenKitClient.getLists();
     }
+    // Parse list paramaters
+    const match = zlists[config.ZENKIT_SHOPPING_LIST];
+    if (!match) {
+      throw new Error('Shopping list not found - {try again}.')
+    }
+    const elements =  JSON.parse(await this.zenKitClient.getElements(match.shortId));
+    match.titleUuid = elements.find(list => list.name ===  'Title').uuid;
+    match.uncompleteId = elements.find(list => list.name ===  'Stage')
+      .elementData
+      .predefinedCategories
+      .find(list => list.name ===  'To-Do')
+      .id;
+    match.completeId = elements.find(list => list.name ===  'Stage')
+      .elementData
+      .predefinedCategories
+      .find(list => list.name ===  'Done')
+      .id;
+    match.stageUuid = elements.find(list => list.name ===  'Stage').uuid;
+    return match; //TODO: return zlists instead and get all zenkit lists
   }
 
   /**

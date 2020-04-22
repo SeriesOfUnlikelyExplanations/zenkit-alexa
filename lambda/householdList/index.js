@@ -42,7 +42,8 @@ const SkillEventHandler = {
   canHandle(handlerInput) {
     return Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillDisabled' ||
       Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillPermissionAccepted' ||
-      Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillPermissionChanged';
+      Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillPermissionChanged' ||
+      Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillAccountLinked';
   },
   async handle(handlerInput) {
     try {
@@ -56,7 +57,7 @@ const SkillEventHandler = {
         permission => permission.scope.split(':').pop());
 
       // Update alexa shopping list if read/write permissions accepted, otherwise clean up database
-      if (permissions.includes('read') && permissions.includes('write')) {
+      if ((permissions.includes('read') && permissions.includes('write')) || Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillAccountLinked' ) {
         // Initialize sync list client
         const client = new SyncListClient(
           handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
@@ -67,7 +68,7 @@ const SkillEventHandler = {
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
-        // Create OurGroceries list sync event schedule
+        // Create zenKit list sync event schedule
         if (handlerInput.context.invokedFunctionArn) { //don't setup sechdule if running locally.
           await events.createSchedule(
             handlerInput.context.invokedFunctionArn, Alexa.getUserId(handlerInput.requestEnvelope));
@@ -77,15 +78,14 @@ const SkillEventHandler = {
         // Delete user attributes to database
         await handlerInput.attributesManager.deletePersistentAttributes();
         console.info('User attributes have been deleted.');
-        // Delete OurGroceries list sync event schedule
+        // Delete zenKit list sync event schedule
         if (handlerInput.context.invokedFunctionArn) { //don't setup sechdule if running locally.
           await events.deleteSchedule(Alexa.getUserId(handlerInput.requestEnvelope));
           console.info('Event schedule has been deleted.');
         };
       }
     } catch (error) {
-      console.error('Failed to handle skill permission event:');
-      console.error(error);
+      console.error('Failed to handle skill permission event:', JSON.stringify(error));
     }
   }
 };

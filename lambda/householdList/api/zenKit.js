@@ -14,9 +14,22 @@ class ZenKitClient {
    * @param {String} apiUrl
    * @param {String} key
    */
-  constructor(apiUrl, key) {
+  constructor(apiUrl, key, keyType = 'Authorization') {
     this.apiUrl = apiUrl;
     this.key = key;
+    this.keyType = keyType;
+  }
+
+  /**
+   * Get workspace
+   * @return {Promise}
+   */
+  getWorkspace() {
+    return this.handleRequest('users/me/workspacesWithLists')
+      .then(function (body) {
+        return JSON.parse(body).find(item =>
+            item.resourceTags.some(e => e.appType === 'todos'));
+      });
   }
 
   /**
@@ -33,7 +46,8 @@ class ZenKitClient {
           .forEach(function(d){
             res[d.name] = {
               id: d.id,
-              shortId: d.shortId };
+              shortId: d.shortId
+            };
           });
         return res
       });
@@ -50,6 +64,7 @@ class ZenKitClient {
   /**
    * Get all elements for list
    * @param {int} shortId
+   * @param {string, null} stageUuid
    * @return {Promise}
    */
   getListItems(listId, stageUuid = '') {
@@ -65,8 +80,32 @@ class ZenKitClient {
   }
 
   /**
+   * Create list
+   * @param {int} shortId
+   * @param {string, null} stageUuid
+   * @return {Promise}
+   */
+  createList(listName, workspaceId) {
+    const parameters = {
+      'name': listName
+    };
+    return this.handleRequest('workspaces/' + workspaceId + '/lists', 'POST', parameters)
+  }
+
+
+  /**
+   * Delete list
+   * @param {int} shortId
+   * @param {string, null} stageUuid
+   * @return {Promise}
+   */
+  deleteList(listId) {
+    return this.handleRequest('lists/' + listId, 'DELETE')
+  }
+
+  /**
   * Add item to list
-  * @param  {String}  listId
+  * @param  {int}  listId
   * @param  {String}  titleUuid
   * @param  {String}  value
   * @return {Promise}
@@ -86,7 +125,7 @@ class ZenKitClient {
 
   /**
   * Delete item from list
-  * @param  {String}  listId
+  * @param  {int}  listId
   * @param  {String}  itemUuid
   * @return {Promise}
   */
@@ -102,7 +141,7 @@ class ZenKitClient {
 
   /**
    * update the "complete" status of an item
-   * @param  {String}  listId
+   * @param  {int}  listId
    * @param  {Int}  entryId
    * @param  {String} stageUuid
    * @param  {Int}  statusId
@@ -136,7 +175,9 @@ class ZenKitClient {
 
   /**
    * Handle request
-   * @param  {Object}  parameters
+   * @param  {string} scope
+   * @param  {string} method
+   * @param  {Object} parameters
    * @return {Promise}
    */
   async handleRequest(scope, method = 'GET', parameters = {}) {
@@ -145,7 +186,7 @@ class ZenKitClient {
         method: method,
         uri: `${this.apiUrl}/${scope}`,
         headers: {
-          'Authorization': this.key
+          [this.keyType]: this.key //Zenkit-API-Key Authorization
         }
       }
     if ( ['PUT','POST'].includes(method)) {

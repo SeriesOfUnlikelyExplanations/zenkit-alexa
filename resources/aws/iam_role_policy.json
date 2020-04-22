@@ -33,6 +33,13 @@
     {
       "Effect": "Allow",
       "Action": [
+        "events:ListRules"
+      ],
+      "Resource": "arn:aws:events:*:*:rule/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
         "lambda:AddPermission",
         "lambda:RemovePermission"
       ],
