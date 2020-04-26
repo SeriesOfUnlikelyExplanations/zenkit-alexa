@@ -16,23 +16,16 @@
         "dynamodb:CreateTable",
         "dynamodb:DeleteItem",
         "dynamodb:GetItem",
-        "dynamodb:PutItem"
+        "dynamodb:PutItem",
+        "dynamodb:Scan"
       ],
       "Resource": "arn:aws:dynamodb:*:*:table/AlexaSyncSettings"
     },
     {
       "Effect": "Allow",
       "Action": [
-        "events:DeleteRule",
         "events:PutRule",
         "events:PutTargets",
-        "events:RemoveTargets"
-      ],
-      "Resource": "arn:aws:events:*:*:rule/AlexaSyncSchedule"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
         "events:ListRules"
       ],
       "Resource": "arn:aws:events:*:*:rule/*"

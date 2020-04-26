@@ -23,17 +23,25 @@ const HouseholdListEventHandler = {
         type: Alexa.getRequestType(handlerInput.requestEnvelope).split('.').pop()
       });
       // Initialize sync list client
-      const client = new SyncListClient(
-        handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken, attributes.syncedList);
-      // Update synced list attribute based on OurGroceries list changes
-      attributes.syncedList = await client.zenKitList(request);
-      console.info('Zenkit shopping list has been synced.', JSON.stringify(attributes.syncedList));
+      if ('syncedLists' in attributes && 'alexaId' in attributes.syncedLists[0]) {
+        const client = new SyncListClient(
+          handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken, attributes.syncedLists);
+        // Update synced list attribute based on Zenkit list changes
+        attributes.syncedLists = await client.updateZenkitList(request);
+      } else {
+        const client = new SyncListClient(
+          handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
+        // Update synced list attribute based on Alexa list changes
+        attributes.syncedLists = await client.updateAlexaList();
+      };
+      console.info('Zenkit shopping list has been synced.', JSON.stringify(attributes.syncedLists));
       // Store latest user attributes to database
       handlerInput.attributesManager.setPersistentAttributes(attributes);
       await handlerInput.attributesManager.savePersistentAttributes();
       console.info('User attributes have been saved.');
     } catch (error) {
       console.error('Failed to handle household list items event:', JSON.stringify(error));
+      console.log(error);
     }
   }
 };
@@ -62,8 +70,8 @@ const SkillEventHandler = {
         const client = new SyncListClient(
           handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
         // Update synced list attribute based on Alexa list changes
-        attributes.syncedList = await client.updateAlexaList();
-        console.info('Alexa shopping list has been synced.', JSON.stringify(attributes.syncedList));
+        attributes.syncedLists = await client.updateAlexaList();
+        console.info('Alexa shopping list has been synced.', JSON.stringify(attributes.syncedLists));
         // Store user attributes to database
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
@@ -78,14 +86,10 @@ const SkillEventHandler = {
         // Delete user attributes to database
         await handlerInput.attributesManager.deletePersistentAttributes();
         console.info('User attributes have been deleted.');
-        // Delete zenKit list sync event schedule
-        if (handlerInput.context.invokedFunctionArn) { //don't setup sechdule if running locally.
-          await events.deleteSchedule(Alexa.getUserId(handlerInput.requestEnvelope));
-          console.info('Event schedule has been deleted.');
-        };
       }
     } catch (error) {
       console.error('Failed to handle skill permission event:', JSON.stringify(error));
+      console.log(error);
     }
   }
 };
@@ -97,15 +101,15 @@ const SkillMessagingHandler = {
   async handle(handlerInput) {
     try {
       // Get latest user attributes from database
-      const attributes = await handlerInput.attributesManager.getPersistentAttributes()
+      const attributes = await handlerInput.attributesManager.getPersistentAttributes();
       var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
       // Initialize sync list client
       const client = new SyncListClient(
         handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
       // Update synced list attribute based on Alexa list changes if requested
       if (handlerInput.requestEnvelope.request.message.event === 'updateAlexaList') {
-        attributes.syncedList = await client.updateAlexaList();
-        console.info('Alexa shopping list has been synced.', JSON.stringify(attributes.syncedList));
+        attributes.syncedLists = await client.updateAlexaList();
+        console.info('Alexa shopping list has been synced.', JSON.stringify(attributes.syncedLists));
       }
       // Store user attributes to database
       handlerInput.attributesManager.setPersistentAttributes(attributes);
@@ -113,6 +117,7 @@ const SkillMessagingHandler = {
       console.info('User attributes have been saved.');
     } catch (error) {
       console.error('Failed to handle skill messaging event:', JSON.stringify(error));
+      console.log(error);
     }
   }
 }
@@ -135,7 +140,7 @@ const LogRequestInterceptor = {
 };
 
 const persistenceAdapter = new DynamoDbPersistenceAdapter({
-  tableName: 'AlexaSyncSettings',
+  tableName: config.DDB_TABLE_NAME,
   createTable: true,
   partitionKeyName: 'userId'
 });
@@ -145,13 +150,17 @@ const scheduledEventHandler = async (event) => {
     console.log('Event received:', JSON.stringify(event));
     // Send skill message if relevant event type
     if (event.type === 'skillMessaging') {
-      const api = new SkillMessagingApi(
-        config.ALEXA_API_URL, config.SKILL_CLIENT_ID, config.SKILL_CLIENT_SECRET, event.userId);
-      await api.sendMessage(event.message);
-      console.log('Skill message sent:', JSON.stringify(event.message));
+      const userIds = await events.getEventUsers(config.DDB_TABLE_NAME);
+      for (var userId of userIds) {
+        const api = new SkillMessagingApi(
+          config.ALEXA_API_URL, config.SKILL_CLIENT_ID, config.SKILL_CLIENT_SECRET, userId);
+        await api.sendMessage(event.message);
+        console.log('Skill message sent: ', userId);
+      }
     }
   } catch (error) {
     console.error(`Failed to handle scheduled event ${event.type}:`, JSON.stringify(error));
+    console.log(error);
   }
 };
 

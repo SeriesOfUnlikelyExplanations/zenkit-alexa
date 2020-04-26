@@ -40,6 +40,11 @@ const POLICY_NAME = 'AlexaSync';
  */
 const ROLE_NAME = `ask-lambda-zenkitSync`;
 
+// Define event rule schedule name
+const ruleName = 'AlexaSyncSchedule';
+
+// Define event rule schedule name
+const targetName = 'AlexaSyncTarget';
 
 /**
  * Execute command

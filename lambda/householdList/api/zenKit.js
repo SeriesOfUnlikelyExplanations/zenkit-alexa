@@ -44,7 +44,7 @@ class ZenKitClient {
             item.resourceTags.some(e => e.appType === 'todos'))
           .lists
           .forEach(function(d){
-            res[d.name] = {
+            res[d.name.toLowerCase()] = {
               id: d.id,
               shortId: d.shortId
             };

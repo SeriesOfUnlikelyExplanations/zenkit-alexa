@@ -30,7 +30,9 @@ class SkillMessagingApi {
       }
     };
     return request(options)
-      .then(({ access_token }) => this.accessToken = access_token);
+      .then(function (res) {
+        return res.access_token
+      });
   }
 
   /**
@@ -43,7 +45,7 @@ class SkillMessagingApi {
       method: 'POST',
       uri: `${this.apiUrl}/v1/skillmessages/users/${this.userId}`,
       auth: {
-        bearer: this.accessToken || await this.getAccessToken()
+        bearer: await this.getAccessToken()
       },
       json: {
         data: data,

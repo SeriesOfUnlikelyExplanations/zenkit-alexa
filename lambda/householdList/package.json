@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "runit": "alexa-skill-local",
     "setit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../test_skill.json",
-    "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../skill.json"
+    "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../skill.json",
+    "submitit": "ask api submit -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1",
+    "withdrawit": "ask api withdraw -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1"
   },
   "author": "Tom Woodard",
   "license": "MIT License",

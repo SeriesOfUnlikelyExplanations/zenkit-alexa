@@ -49,7 +49,7 @@
     },
     "events": {
       "endpoint": {
-        "uri": "https://0040be6b.ngrok.io",
+        "uri": "https://fe29ff5d.ngrok.io",
         "sslCertificateType": "Wildcard"
       },
     "subscriptions": [

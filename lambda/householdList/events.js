@@ -7,14 +7,18 @@ AWS.config.update({region: process.env.AWS_REGION || 'us-east-1'});
 const cwevents = new AWS.CloudWatchEvents();
 // Create Lambda service object
 const lambda = new AWS.Lambda();
+// Create dynamodb client
+var dynamodb = new AWS.DynamoDB.DocumentClient();
 // Define event rule schedule name
 const ruleName = 'AlexaSyncSchedule';
+// Define event rule schedule name
+const targetName = 'AlexaSyncTarget';
 
 /**
  * List event rules
  * @return {Promise}
  */
-function listRules(userId) {
+function listRules() {
   const params = {};
   return cwevents.listRules(params).promise();
 }
@@ -23,7 +27,7 @@ function listRules(userId) {
  * Create event rule schedule
  * @return {Promise}
  */
-function createRule() {
+function createRule(userId) {
   const params = {
     Name: ruleName,
     ScheduleExpression: 'rate(30 minutes)',
@@ -38,35 +42,22 @@ function createRule() {
  * @param  {String} userId
  * @return {Promise}
  */
-function createTarget(functionArn, userId) {
+function createTarget(functionArn) {
   const params = {
     Rule: ruleName,
     Targets: [{
-      Id: userId.substring(0,64),
+      Id: targetName,
       Arn: functionArn,
       Input: JSON.stringify({
         'source': 'aws.events',
         'type': 'skillMessaging',
         'message': {
           'event': 'updateAlexaList'
-        },
-        'userId': userId
+        }
       })
     }]
   };
   return cwevents.putTargets(params).promise();
-}
-
-/**
- * Delete event rule target
- * @return {Promise}
- */
-function deleteTarget(userId) {
-  const params = {
-    Rule: ruleName,
-    Ids: [userId.substring(0,64)]
-  };
-  return cwevents.removeTargets(params).promise();
 }
 
 /**
@@ -93,23 +84,36 @@ function addPermission(ruleArn) {
  */
 async function createSchedule(functionArn, userId) {
   const rules = await listRules();
-  var rule = rules.Rules.find(rule => rule.Arn.includes("AlexaSyncSchedule"));
+  var rule = rules.Rules.find(rule => rule.Arn.includes(ruleName));
   if (!rule) {
     rule = await createRule();
-    await addPermission(rule.RuleArn)
+    await Promise.all([
+      addPermission(rule.RuleArn),
+      createTarget(functionArn, userId)
+    ]);
   }
-  await createTarget(functionArn, userId)
 }
 
 /**
- * Delete event schedule
+ * return an array of users that need to be synced
+ * @param  {String} ddbTableName
  * @return {Promise}
  */
-async function deleteSchedule(userId) {
-  await deleteTarget(userId)
+async function getEventUsers(ddbTableName) {
+  const params = {
+    TableName: ddbTableName
+  };
+  return dynamodb.scan(params).promise()
+    .then(function(res) {
+      var response = [];
+      res.Items.forEach((item) => {
+        response.push(item.userId);
+      });
+      return response
+    });
 }
 
 module.exports = {
   createSchedule,
-  deleteSchedule
+  getEventUsers
 };
