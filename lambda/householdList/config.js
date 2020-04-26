@@ -8,7 +8,7 @@ module.exports = Object.freeze({
   // ZenKit
   ZENKIT_API_URL: process.env.OUR_GROCERIES_API_URL || 'https://todo.zenkit.com/api/v1',
   ZENKIT_SHOPPING_LIST: process.env.ZENKIT_SHOPPING_LIST || 'Shopping list',
-  ZENKIT_TODO_LIST: process.env.ZENKIT_TODO_LIST || 'To-do',
+  ZENKIT_TODO_LIST: process.env.ZENKIT_TODO_LIST || 'to-do',
   ZENKIT_INBOX_LIST: 'Inbox',
   // Skill
   SKILL_APP_ID: process.env.SKILL_APP_ID,

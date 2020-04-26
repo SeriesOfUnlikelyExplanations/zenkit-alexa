@@ -15,7 +15,7 @@ This skill provides Alexa shopping list synchronization with a todo.zenkit.com s
 https://github.com/SeriesOfUnlikelyExplanations/zenkit-alexa/issues
 
 ### Known bugs:
-
+None
 
 ## Special thanks
 Special thanks to @jsetton for creating the ourGrocieries Alexa sync that this skill is based off of - https://github.com/jsetton/alexa-ourgroceries-sync
