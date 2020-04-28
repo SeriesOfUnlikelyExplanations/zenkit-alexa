@@ -158,11 +158,9 @@ const scheduledEventHandler = async (event) => {
         .then(console.log('Skill message sent: ', userId))
         .catch(async (error) => {
           if (error.error.message && error.error.message === 'Invalid user id.') {
-            console.log('Need to delete User ID: ' + userId);
             await events.deleteUser(userId, config.DDB_TABLE_NAME)
               .then((res) => {
                 console.log('Deleted User ID: ' + userId);
-                console.log(res);
               });
           } else {
             console.error(`Failed to handle scheduled event ${event.type}:`, JSON.stringify(error));
