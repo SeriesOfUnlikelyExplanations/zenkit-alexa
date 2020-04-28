@@ -105,12 +105,11 @@ async function getEventUsers(ddbTableName) {
   };
   return dynamodb.scan(params).promise()
     .then(function(res) {
-        var response = [];
-        res.Items.forEach((item) => {
-          response.push(item.userId);
-        });
-        return response
-      };
+      var response = [];
+      res.Items.forEach((item) => {
+        response.push(item.userId);
+      });
+      return response
     });
 }
 
@@ -131,5 +130,6 @@ async function deleteUser(userId, ddbTableName) {
 
 module.exports = {
   createSchedule,
-  getEventUsers
+  getEventUsers,
+  deleteUser
 };

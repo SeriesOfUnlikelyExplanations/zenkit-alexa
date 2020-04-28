@@ -248,7 +248,6 @@ class SyncListClient {
           // Update existing item only if updated time on synced item is lower than alexa item
           if (new Date(syncedItem.updatedTime).getTime() < new Date(alexaItem.updatedTime).getTime()) {
             const value = alexaItem.value.toLowerCase();
-
             // Set zenkit item to be renamed if alexa value different than synced item
             if (syncedItem.value !== value) {
               promises.push(
@@ -257,7 +256,6 @@ class SyncListClient {
                 syncedList.titleUuid, alexaItem.value.toLowerCase())
               );
             }
-
             // Set zenkit item crossed status to be updated if different
             if (syncedItem.status !== alexaItem.status) {
               promises.push(
@@ -266,7 +264,6 @@ class SyncListClient {
                   alexaItem.status === 'completed' ? syncedList.completeId : syncedList.uncompleteId)
               );
             }
-
             // Update synced item
             Object.assign(syncedItem, {
               status: alexaItem.status,
@@ -284,7 +281,6 @@ class SyncListClient {
       } else if (request.type === 'ItemsDeleted') {
         // Determine synced item index with alexa item id
         const index = syncedItems.findIndex(item => item.alexaId === alexaItem.id);
-
         // Set Zenkit item to be deleted if found
         if (index > -1) {
           promises.push(
