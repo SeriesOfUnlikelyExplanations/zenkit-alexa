@@ -129,17 +129,20 @@ class SyncListClient {
       this.getAlexaLists(), this.getZenkitLists()]);
     const zenkitLists = await this.createZenkitLists(zenkitListTemp, alexaLists);
     const promises = [];
+    const zenkitListItemsArr = {};
+    for (const [key, zenkitList] of Object.entries(zenkitLists)) {
+      zenkitListItemsArr[zenkitList.id] = this.zenKitClient.getListItems(zenkitList.id, zenkitList.stageUuid);
+    }
     for (const [key, zenkitList] of Object.entries(zenkitLists)) {
       const mappedKey = this.keyMapper(key, zenkitLists, true);
       if (!(mappedKey)) { continue; }
       const alexaList = alexaLists[mappedKey];
-      // Determine alexa item to be added/updated using zenkit list as reference
-      const zenkitListItems = await this.zenKitClient.getListItems(zenkitList.id, zenkitList.stageUuid);
+      const zenkitListItems = await zenkitListItemsArr[zenkitList.id];
       zenkitListItems.forEach((zenkitItem) => {
         // Find alexa matching item
         const alexaItem = alexaList.items.find(alexaItem =>
           alexaItem.value.toLowerCase() === zenkitItem.displayString.toLowerCase());
-        // Determine alexa status based of ourGroceries crossed off property
+        // Determine alexa status based of Zenkit crossed off property
         const zenkitItemStatus = !zenkitItem.completed ? 'active' : 'completed';
 
         // Define get item properties function
@@ -178,10 +181,8 @@ class SyncListClient {
         .forEach(alexaItem =>
           promises.push(
             this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)));
-
-      // Get synced items promise result
+      // put all the synced items into the synced lists
       const syncedItems = await Promise.all(promises);
-      // Return synced list
       const syncedList = {
         alexaId: alexaList.listId,
         alexaListName: mappedKey,
@@ -196,6 +197,7 @@ class SyncListClient {
       };
       this.syncedLists.push(syncedList);
     }
+    //Return synced items promise result
     return this.syncedLists
   }
 
@@ -206,95 +208,93 @@ class SyncListClient {
    */
   async updateZenkitList(request) {
     const syncedList = this.syncedLists.find((syncedList) => syncedList.alexaId === request.listId);
+    if (!(syncedList)) { return this.syncedLists; }
     const syncedItems = syncedList.items;
     const promises = [];
-    // Handle request if from alexa shopping list
-    if (syncedList.alexaId === request.listId) {
-      // Get alexa items data based on request item ids if not delete request, otherwise use id only
-      const alexaItems = await Promise.all(
-        request.listItemIds.map(itemId => request.type === 'ItemsDeleted' ? {id: itemId} :
-          this.householdListManager.getListItem(request.listId, itemId)));
-      alexaItems.forEach((alexaItem) => {
-        if (request.type === 'ItemsCreated') {
-          // Determine synced item with alexa item value
-          const syncedItem = syncedItems.find(item =>
-            item.value.toLowerCase() === alexaItem.value.toLowerCase()
-            || item.alexaId === alexaItem.id);
-          if (!syncedItem) {
-            promises.push(
-              // Set zenKit item to be added
-              this.zenKitClient.addItem(
-                syncedList.listId, syncedList.titleUuid, alexaItem.value.toLowerCase()
-              ).then(function (res) {
-                // Add new synced item
-                syncedItems.push({
-                  zenKitUuidId: res.uuid,
-                  zenKitEntryId: res.id,
-                  alexaId: alexaItem.id,
-                  status: alexaItem.status,
-                  updatedTime: new Date(alexaItem.updatedTime).toISOString(),
-                  value: alexaItem.value.toLowerCase(),
-                  version: alexaItem.version
-                });
-              })
-            );
-          }
-        } else if (request.type === 'ItemsUpdated') {
-          // Determine synced item with alexa item id
-          const syncedItem = syncedItems.find(item => item.alexaId === alexaItem.id);
-          console.log(syncedItem);
-          if (syncedItem) {
-            // Update existing item only if updated time on synced item is lower than alexa item
-            if (new Date(syncedItem.updatedTime).getTime() < new Date(alexaItem.updatedTime).getTime()) {
-              const value = alexaItem.value.toLowerCase();
-
-              // Set zenkit item to be renamed if alexa value different than synced item
-              if (syncedItem.value !== value) {
-                promises.push(
-                this.zenKitClient.updateItemTitle(
-                  syncedList.listId, syncedItem.zenKitEntryId,
-                  syncedList.titleUuid, alexaItem.value.toLowerCase())
-                );
-              }
-
-              // Set zenkit item crossed status to be updated if different
-              if (syncedItem.status !== alexaItem.status) {
-                promises.push(
-                  this.zenKitClient.updateItemStatus(
-                    syncedList.listId, syncedItem.zenKitEntryId, syncedList.stageUuid,
-                    alexaItem.status === 'completed' ? syncedList.completeId : syncedList.uncompleteId)
-                );
-              }
-
-              // Update synced item
-              Object.assign(syncedItem, {
+    // Get alexa items data based on request item ids if not delete request, otherwise use id only
+    const alexaItems = await Promise.all(
+      request.listItemIds.map(itemId => request.type === 'ItemsDeleted' ? {id: itemId} :
+        this.householdListManager.getListItem(request.listId, itemId)));
+    alexaItems.forEach((alexaItem) => {
+      if (request.type === 'ItemsCreated') {
+        // Determine synced item with alexa item value
+        const syncedItem = syncedItems.find(item =>
+          item.value.toLowerCase() === alexaItem.value.toLowerCase()
+          || item.alexaId === alexaItem.id);
+        if (!syncedItem) {
+          promises.push(
+            // Set zenKit item to be added
+            this.zenKitClient.addItem(
+              syncedList.listId, syncedList.titleUuid, alexaItem.value.toLowerCase()
+            ).then(function (res) {
+              // Add new synced item
+              syncedItems.push({
+                zenKitUuidId: res.uuid,
+                zenKitEntryId: res.id,
+                alexaId: alexaItem.id,
                 status: alexaItem.status,
                 updatedTime: new Date(alexaItem.updatedTime).toISOString(),
                 value: alexaItem.value.toLowerCase(),
                 version: alexaItem.version
               });
-            }
-          } else {
-            // Set alexa updated item to be deleted
-            promises.push(
-              this.householdListManager.deleteListItem(
-                syncedList.alexaId, alexaItem.id));
-          }
-        } else if (request.type === 'ItemsDeleted') {
-          // Determine synced item index with alexa item id
-          const index = syncedItems.findIndex(item => item.alexaId === alexaItem.id);
-
-          // Set ourGroceries item to be deleted if found
-          if (index > -1) {
-            promises.push(
-              this.zenKitClient.deleteItem(
-                syncedList.listId, syncedItems[index].zenKitUuidId));
-            // Remove deleted synced item
-            syncedItems.splice(index, 1);
-          }
+            })
+          );
         }
-      });
-    }
+      } else if (request.type === 'ItemsUpdated') {
+        // Determine synced item with alexa item id
+        const syncedItem = syncedItems.find(item => item.alexaId === alexaItem.id);
+        console.log(syncedItem);
+        if (syncedItem) {
+          // Update existing item only if updated time on synced item is lower than alexa item
+          if (new Date(syncedItem.updatedTime).getTime() < new Date(alexaItem.updatedTime).getTime()) {
+            const value = alexaItem.value.toLowerCase();
+
+            // Set zenkit item to be renamed if alexa value different than synced item
+            if (syncedItem.value !== value) {
+              promises.push(
+              this.zenKitClient.updateItemTitle(
+                syncedList.listId, syncedItem.zenKitEntryId,
+                syncedList.titleUuid, alexaItem.value.toLowerCase())
+              );
+            }
+
+            // Set zenkit item crossed status to be updated if different
+            if (syncedItem.status !== alexaItem.status) {
+              promises.push(
+                this.zenKitClient.updateItemStatus(
+                  syncedList.listId, syncedItem.zenKitEntryId, syncedList.stageUuid,
+                  alexaItem.status === 'completed' ? syncedList.completeId : syncedList.uncompleteId)
+              );
+            }
+
+            // Update synced item
+            Object.assign(syncedItem, {
+              status: alexaItem.status,
+              updatedTime: new Date(alexaItem.updatedTime).toISOString(),
+              value: alexaItem.value.toLowerCase(),
+              version: alexaItem.version
+            });
+          }
+        } else {
+          // Set alexa updated item to be deleted
+          promises.push(
+            this.householdListManager.deleteListItem(
+              syncedList.alexaId, alexaItem.id));
+        }
+      } else if (request.type === 'ItemsDeleted') {
+        // Determine synced item index with alexa item id
+        const index = syncedItems.findIndex(item => item.alexaId === alexaItem.id);
+
+        // Set Zenkit item to be deleted if found
+        if (index > -1) {
+          promises.push(
+            this.zenKitClient.deleteItem(
+              syncedList.listId, syncedItems[index].zenKitUuidId));
+          // Remove deleted synced item
+          syncedItems.splice(index, 1);
+        }
+      }
+    });
 
     // Apply all changes
     await Promise.all(promises);

@@ -104,12 +104,36 @@ async function getEventUsers(ddbTableName) {
     TableName: ddbTableName
   };
   return dynamodb.scan(params).promise()
-    .then(function(res) {
-      var response = [];
-      res.Items.forEach((item) => {
-        response.push(item.userId);
-      });
-      return response
+    .then(function(err, res) {
+      if (err) console.log(err);
+      else {
+        var response = [];
+        res.Items.forEach((item) => {
+          response.push(item.userId);
+        });
+        return response
+      };
+    });
+}
+
+/**
+ * Delete a specific user ID
+ * @param  {String} ddbTableName
+ * @return {Promise}
+ */
+async function deleteUser(userId, ddbTableName) {
+  const params = {
+    TableName: ddbTableName,
+    Key: {
+      userId: userId
+    }
+  };
+  return dynamodb.delete(params).promise()
+    .then(function(err, res) {
+      if (err) console.log(err);
+      else {
+        return res
+      };
     });
 }
 

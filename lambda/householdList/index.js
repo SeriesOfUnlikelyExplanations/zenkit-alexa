@@ -146,21 +146,31 @@ const persistenceAdapter = new DynamoDbPersistenceAdapter({
 });
 
 const scheduledEventHandler = async (event) => {
-  try {
-    console.log('Event received:', JSON.stringify(event));
-    // Send skill message if relevant event type
-    if (event.type === 'skillMessaging') {
-      const userIds = await events.getEventUsers(config.DDB_TABLE_NAME);
-      for (var userId of userIds) {
+  console.log('Event received:', JSON.stringify(event));
+  // Send skill message if relevant event type
+  if (event.type === 'skillMessaging') {
+    const userIds = await events.getEventUsers(config.DDB_TABLE_NAME);
+    for (var userId of userIds) {
+      try {
         const api = new SkillMessagingApi(
           config.ALEXA_API_URL, config.SKILL_CLIENT_ID, config.SKILL_CLIENT_SECRET, userId);
-        await api.sendMessage(event.message);
-        console.log('Skill message sent: ', userId);
+        api.sendMessage(event.message)
+          .then((res) => {
+            console.log('Skill message sent: ', userId);
+            });
+      } catch (error) {
+        console.error(`Failed to handle scheduled event ${event.type}:`, JSON.stringify(error));
+        console.log(error);
+        if (error.error.message && error.error.message === 'Invalid user id.') {
+          console.log('Need to delete User ID: ' + userId);
+          events.deleteUser(userId, config.DDB_TABLE_NAME)
+            .then((res) => {
+              console.log('Deleted User ID: ' + userId);
+              console.log(res);
+            });
+        }
       }
     }
-  } catch (error) {
-    console.error(`Failed to handle scheduled event ${event.type}:`, JSON.stringify(error));
-    console.log(error);
   }
 };
 
