@@ -104,9 +104,7 @@ async function getEventUsers(ddbTableName) {
     TableName: ddbTableName
   };
   return dynamodb.scan(params).promise()
-    .then(function(err, res) {
-      if (err) console.log(err);
-      else {
+    .then(function(res) {
         var response = [];
         res.Items.forEach((item) => {
           response.push(item.userId);
@@ -129,12 +127,6 @@ async function deleteUser(userId, ddbTableName) {
     }
   };
   return dynamodb.delete(params).promise()
-    .then(function(err, res) {
-      if (err) console.log(err);
-      else {
-        return res
-      };
-    });
 }
 
 module.exports = {
