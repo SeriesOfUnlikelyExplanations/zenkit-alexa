@@ -186,7 +186,7 @@ class ZenKitClient {
         method: method,
         uri: `${this.apiUrl}/${scope}`,
         headers: {
-          [this.keyType]: this.key //Zenkit-API-Key Authorization
+          [this.keyType]: this.key //Zenkit-API-Key
         }
       }
     if ( ['PUT','POST'].includes(method)) {

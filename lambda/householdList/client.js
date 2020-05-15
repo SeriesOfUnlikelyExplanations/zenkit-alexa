@@ -124,12 +124,22 @@ class SyncListClient {
    * Update Alexa list
    * @return {Promise}
    */
-  async updateAlexaList() {
+  async updateAlexaList(newUser = false) {
     const [alexaLists, zenkitListTemp] = await Promise.all([
       this.getAlexaLists(), this.getZenkitLists()]);
     const zenkitLists = await this.createZenkitLists(zenkitListTemp, alexaLists);
     const promises = [];
     const zenkitListItemsArr = {};
+    // Define get item properties function
+    const getItemProperties = (alexaItem, zenkitItem) => ({
+      alexaId: alexaItem.id,
+      zenKitUuidId: zenkitItem.uuid,
+      zenKitEntryId: zenkitItem.id,
+      status: alexaItem.status,
+      updatedTime: new Date(alexaItem.updatedTime).toISOString(),
+      value: alexaItem.value.toLowerCase(),
+      version: alexaItem.version
+    });
     for (const [key, zenkitList] of Object.entries(zenkitLists)) {
       zenkitListItemsArr[zenkitList.id] = this.zenKitClient.getListItems(zenkitList.id, zenkitList.stageUuid);
     }
@@ -137,6 +147,7 @@ class SyncListClient {
       const mappedKey = this.keyMapper(key, zenkitLists, true);
       if (!(mappedKey)) { continue; }
       const alexaList = alexaLists[mappedKey];
+      if (!(alexaList)) { continue; }
       const zenkitListItems = await zenkitListItemsArr[zenkitList.id];
       zenkitListItems.forEach((zenkitItem) => {
         // Find alexa matching item
@@ -144,43 +155,45 @@ class SyncListClient {
           alexaItem.value.toLowerCase() === zenkitItem.displayString.toLowerCase());
         // Determine alexa status based of Zenkit crossed off property
         const zenkitItemStatus = !zenkitItem.completed ? 'active' : 'completed';
-
-        // Define get item properties function
-        const getItemProperties = (alexaItem) => ({
-          alexaId: alexaItem.id,
-          zenKitUuidId: zenkitItem.uuid,
-          zenKitEntryId: zenkitItem.id,
-          status: alexaItem.status,
-          updatedTime: new Date(alexaItem.updatedTime).toISOString(),
-          value: alexaItem.value.toLowerCase(),
-          version: alexaItem.version
-        });
-
         if (typeof alexaItem !== 'undefined') {
           // Set alexa item to be updated if crossed off status not synced, otherwise leave untouched
-          promises.push(zenkitItemStatus === alexaItem.status ? getItemProperties(alexaItem) :
+          promises.push(zenkitItemStatus === alexaItem.status ? getItemProperties(alexaItem, zenkitItem) :
             this.householdListManager.updateListItem(alexaList.listId, alexaItem.id, {
               value: alexaItem.value, status: zenkitItemStatus, version: alexaItem.version}
-            ).then((item) => getItemProperties(item))
+            ).then((item) => getItemProperties(item, zenkitItem))
           );
         } else {
           // Set alexa item to be created
           promises.push(
             this.householdListManager.createListItem(alexaList.listId, {
               value: zenkitItem.displayString.toLowerCase(), status: zenkitItemStatus}
-            ).then((item) => getItemProperties(item))
+            ).then((item) => getItemProperties(item, zenkitItem))
           );
         }
       });
 
-      // Determine alexa item to be deleted if not present in zenkit list
-      alexaList.items
-        .filter(alexaItem =>
-          zenkitListItems.every(zenkitItem =>
-            zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase()))
-        .forEach(alexaItem =>
-          promises.push(
-            this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)));
+      // Determine Alexa items not present in zenkit list - if it's a new user then add them to zenkit if it's an existing user, then delete them.
+      if (newUser) {
+        alexaList.items
+          .filter(alexaItem =>
+            zenkitListItems.every(zenkitItem =>
+              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase()))
+          .forEach(alexaItem =>
+            promises.push(
+              this.zenKitClient.addItem(
+                zenkitList.id, zenkitList.titleUuid, alexaItem.value.toLowerCase())
+              .then(zenkitItem => getItemProperties(alexaItem, zenkitItem))
+            )
+          );
+      } else {
+        alexaList.items
+          .filter(alexaItem =>
+            zenkitListItems.every(zenkitItem =>
+              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase()))
+          .forEach(alexaItem =>
+            promises.push(
+              this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)));
+      }
       // put all the synced items into the synced lists
       const syncedItems = await Promise.all(promises);
       const syncedList = {
@@ -299,6 +312,32 @@ class SyncListClient {
     this.syncedLists[index] = syncedList;
     return this.syncedLists;
   }
+
+
+  /**
+   * Create to-do list item letting the customer know that the account sync failed
+   * @return {Promise}
+   */
+  async createSyncToDo() {
+    const listEntryName = 'Zenkit Alexa Sync is not setup correctly! Go to https://www.amazon.com/dp/B087C8XQ3T and click on "Link Account"'
+    // Get all lists
+    const { lists } = await this.householdListManager.getListsMetadata();
+    const listId = lists.find(item => item.name === 'Alexa to-do list')
+        .listId;
+    const listItems = await this.householdListManager.getList(listId, 'active');
+    console.log(listItems.items);
+    console.log(listItems.items.find(item => item.value === listEntryName));
+    if (listItems.items.find(item => item.value === listEntryName)) {
+      return 'Sync item already present'
+    } else {
+      return this.householdListManager.createListItem(
+        listId, {
+        value: listEntryName , status: 'active'}
+      );
+
+    };
+  }
 }
+
 
 module.exports = SyncListClient;
