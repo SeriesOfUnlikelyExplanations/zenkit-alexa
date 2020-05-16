@@ -22,8 +22,7 @@ const HouseholdListEventHandler = {
       if (accessToken == undefined){
         const client = new SyncListClient(
           handlerInput.serviceClientFactory.getListManagementServiceClient());
-        const res = await client.createSyncToDo();
-        console.log(res);
+        await client.createSyncToDo();
         throw 'Missing token: ' + JSON.stringify(handlerInput);
       }
       // Define request object
@@ -40,7 +39,7 @@ const HouseholdListEventHandler = {
         const client = new SyncListClient(
           handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
         // Update synced list attribute based on Alexa list changes
-        attributes.syncedLists = await client.updateAlexaList();
+        attributes.syncedLists = await client.updateAlexaList(true);
       };
       console.info('Zenkit lists have been synced.', JSON.stringify(attributes.syncedLists));
       // Store latest user attributes to database
@@ -48,7 +47,7 @@ const HouseholdListEventHandler = {
       await handlerInput.attributesManager.savePersistentAttributes();
       console.info('User attributes have been saved.');
     } catch (error) {
-      console.error('Failed to handle household list items event:', JSON.stringify(error));
+      console.error('Failed to handle household list items event:');
       console.log(error);
     }
   }
@@ -72,7 +71,7 @@ const SkillEventHandler = {
       const permissions = (handlerInput.requestEnvelope.request.body.acceptedPermissions || []).map(
         permission => permission.scope.split(':').pop());
 
-      // Update alexa shopping list if read/write permissions accepted, otherwise clean up database
+      // Update alexa list if read/write permissions accepted, otherwise clean up database
       if ((permissions.includes('read') && permissions.includes('write')) || Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillAccountLinked' ) {
         // Initialize sync list client
         const client = new SyncListClient(
@@ -100,7 +99,7 @@ const SkillEventHandler = {
         console.info('User attributes have been deleted.');
       }
     } catch (error) {
-      console.error('Failed to handle skill permission event:', JSON.stringify(error));
+      console.error('Failed to handle skill permission event:');
       console.log(error);
     }
   }
@@ -120,19 +119,20 @@ const SkillMessagingHandler = {
         handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
       // if accessToken is missing, inform the customer throught their ToDo list.
       if (accessToken == undefined){
-        throw 'Missing token on time-based sync';
+        await handlerInput.attributesManager.deletePersistentAttributes();
+        throw 'Missing token on time-based sync - deleted persistent attributes';
       }
       // Update synced list attribute based on Alexa list changes if requested
       if (handlerInput.requestEnvelope.request.message.event === 'updateAlexaList') {
         attributes.syncedLists = await client.updateAlexaList();
-        console.info('Alexa shopping list has been synced.', JSON.stringify(attributes.syncedLists));
+        console.info('Alexa list has been synced.', JSON.stringify(attributes.syncedLists));
       }
       // Store user attributes to database
       handlerInput.attributesManager.setPersistentAttributes(attributes);
       await handlerInput.attributesManager.savePersistentAttributes();
       console.info('User attributes have been saved.');
     } catch (error) {
-      console.error('Failed to handle skill messaging event:', JSON.stringify(error));
+      console.error('Failed to handle skill messaging event:');
       console.log(error);
     }
   }
@@ -179,7 +179,7 @@ const scheduledEventHandler = async (event) => {
                 console.log('Deleted User ID: ' + userId);
               });
           } else {
-            console.error(`Failed to handle scheduled event ${event.type}:`, JSON.stringify(error));
+            console.error('Failed to handle scheduled event:',);
             console.log(error);
           };
         })

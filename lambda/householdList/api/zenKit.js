@@ -43,12 +43,13 @@ class ZenKitClient {
         JSON.parse(body).find(item =>
             item.resourceTags.some(e => e.appType === 'todos'))
           .lists
-          .forEach(function(d){
+          .forEach(d =>
             res[d.name] = {
               id: d.id,
-              shortId: d.shortId
-            };
-          });
+              shortId: d.shortId,
+              workspaceId: d.workspaceId
+            }
+          );
         return res
       });
   }
@@ -193,6 +194,7 @@ class ZenKitClient {
       options['body'] = parameters;
       options['json'] = true
     }
+    console.log(options);
     return request(options);
   }
 }

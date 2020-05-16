@@ -2,6 +2,6 @@
     "Runtime": "nodejs12.x",
     "Handler": "index.handler",
     "Description": "List Sync with Alexa",
-    "Timeout": 15,
+    "Timeout": 25,
     "MemorySize": 128
 }
