@@ -47,24 +47,24 @@ class SyncListClient {
     }
   }
   /**
-   * Get Alexa shopping list
+   * Get Alexa lists
    * @return {Promise}
    */
   async getAlexaLists() {
     // Get all lists
     const { lists } = await this.householdListManager.getListsMetadata();
     var res = {};
-    lists.forEach(async (list) => {
+    for (const list of lists) {
       if (list.state === 'active') {
         const [active, completed] = await Promise.all([
           this.householdListManager.getList(list.listId, 'active'),
           this.householdListManager.getList(list.listId, 'completed')
         ]);
-        res[list.name] = {listId: list.listId};
-        res[list.name].listName = list.name;
-        res[list.name].items = [].concat(active.items, completed.items);
-      };
-    });
+        res[list.name] = {listId: list.listId,
+          listName: list.name,
+          items: [].concat(active.items, completed.items)};
+      }
+    }
     return res;
   }
 
@@ -72,66 +72,47 @@ class SyncListClient {
    * Get zenkit lists
    * @return {Promise}
    */
-  async getZenkitLists() {
-    // Get lists
-    var zlists = await this.zenKitClient.getLists();
-    const elements = {};
-    for (const [key, value] of Object.entries(zlists)) {
-      elements[key] =  this.zenKitClient.getElements(value.shortId);
-    }
-    // Parse list paramaters
-    for (const [key, value] of Object.entries(zlists)) {
-      const element =  JSON.parse(await elements[key]);
-      zlists[key].titleUuid = element.find(list => list.name ===  'Title').uuid;
-      zlists[key].uncompleteId = element.find(list => list.name ===  'Stage')
-        .elementData
-        .predefinedCategories
-        .find(list => list.name ===  'To-Do')
-        .id;
-      zlists[key].completeId = element.find(list => list.name ===  'Stage')
-        .elementData
-        .predefinedCategories
-        .find(list => list.name ===  'Done')
-        .id;
-      zlists[key].stageUuid = element.find(list => list.name ===  'Stage').uuid;
-    }
-    return zlists;
+  zenkitListMetadata(zlist) {
+    const element =  this.zenKitClient.getElements(zlist.shortId).then(item => JSON.parse(item));
+    zlist.titleUuid = element.then(item => item.find(list => list.name ===  'Title').uuid);
+    zlist.uncompleteId = element.then(item => item.find(list => list.name ===  'Stage')
+      .elementData
+      .predefinedCategories
+      .find(list => list.name ===  'To-Do')
+      .id);
+    zlist.completeId = element.then(item => item.find(list => list.name ===  'Stage')
+      .elementData
+      .predefinedCategories
+      .find(list => list.name ===  'Done')
+      .id);
+    zlist.stageUuid = element.then(item => item.find(list => list.name ===  'Stage').uuid);
+    return zlist;
   }
 
-  /**
-   * Get zenkit lists
-   * @return {Promise}
-   */
-  async createZenkitLists(zlists, alists) {
-    var flag = false;
-    var workspace = '';
-    const promises = [];
-    //create zlist from alist if zlist doesn't exist
-    for (const [key, value] of Object.entries(alists)) {
-      const newKey = this.mapAlexaToZenkitLists(key, zlists);
-      if (!(newKey in zlists)) {
-        flag = true;
-        console.log('Creating list: ' + newKey);
-        workspace = workspace === '' ? await this.zenKitClient.getWorkspace() : workspace;
-        promises.push(this.zenKitClient.createList(newKey, workspace.id));
-      }
-    };
-    if (flag) {
-      await Promise.all(promises);
-      return this.getZenkitLists()
-    } else {
-      return zlists
-    };
-  }
   /**
    * Update Alexa list
    * @return {Promise}
    */
   async updateAlexaList(newUser = false) {
-    const [alexaLists, zenkitListTemp] = await Promise.all([
-      this.getAlexaLists(), this.getZenkitLists()]);
-    const zenkitLists = await this.createZenkitLists(zenkitListTemp, alexaLists);
-    const zenkitListItemsArr = {};
+    const [alexaLists, zenkitLists] = await Promise.all([
+      this.getAlexaLists(), this.zenKitClient.getLists()]);
+    var workspace = '';
+    //Itterate over alexa lists and make sure zenkit list exists and has metadata
+    for (const [alexaListName, value] of Object.entries(alexaLists)) {
+      const zenkitListName = this.mapAlexaToZenkitLists(alexaListName, zenkitLists);
+      if (!(zenkitListName in zenkitLists)) {
+        console.log('Creating list: ' + zenkitListName);
+        workspace = workspace === '' ? await this.zenKitClient.getWorkspace() : workspace;
+        zenkitLists[zenkitListName] = this.zenkitListMetadata(await this.zenKitClient.createList(zenkitListName, workspace.id));
+      } else {
+        zenkitLists[zenkitListName] = this.zenkitListMetadata(zenkitLists[zenkitListName]);
+      }
+      zenkitLists[zenkitListName].items = zenkitLists[zenkitListName].stageUuid.then(stageUuid => this.zenKitClient.getListItems(zenkitLists[zenkitListName].id, stageUuid));
+    }
+    console.log('Alexa Lists:');
+    console.log(alexaLists);
+    console.log('Zenkit Lists:');
+    console.log(zenkitLists);
     // Define get item properties function
     const getItemProperties = (alexaItem, zenkitItem) => ({
       alexaId: alexaItem.id,
@@ -142,16 +123,13 @@ class SyncListClient {
       value: alexaItem.value.toLowerCase(),
       version: alexaItem.version
     });
-    for (const [key, zenkitList] of Object.entries(zenkitLists)) {
-      zenkitListItemsArr[zenkitList.id] = this.zenKitClient.getListItems(zenkitList.id, zenkitList.stageUuid);
-    }
-    for (const [key, zenkitList] of Object.entries(zenkitLists)) {
+    for (const [zenkitListName, zenkitList] of Object.entries(zenkitLists)) {
       const promises = [];
-      const mappedKey = this.mapAlexaToZenkitLists(key, zenkitLists, true);
-      if (!(mappedKey)) { continue; }
-      const alexaList = alexaLists[mappedKey];
+      const alexaListName = this.mapAlexaToZenkitLists(zenkitListName, zenkitLists, true);
+      if (!(alexaListName)) { continue; }
+      const alexaList = alexaLists[alexaListName];
       if (!(alexaList)) { continue; }
-      const zenkitListItems = await zenkitListItemsArr[zenkitList.id];
+      const zenkitListItems = await zenkitLists[zenkitListName].items;
       zenkitListItems.forEach((zenkitItem) => {
         // Find alexa matching item
         const alexaItem = alexaList.items.find(alexaItem =>
@@ -201,15 +179,15 @@ class SyncListClient {
       const syncedItems = await Promise.all(promises);
       const syncedList = {
         alexaId: alexaList.listId,
-        alexaListName: mappedKey,
-        zenkitListName: key,
+        alexaListName: alexaListName,
+        zenkitListName: zenkitListName,
         items: syncedItems.filter(Boolean),
         listId: zenkitList.id,
         shortListId: zenkitList.shortId,
-        titleUuid: zenkitList.titleUuid,
-        uncompleteId: zenkitList.uncompleteId,
-        completeId: zenkitList.completeId,
-        stageUuid: zenkitList.stageUuid,
+        titleUuid: await zenkitList.titleUuid,
+        uncompleteId: await zenkitList.uncompleteId,
+        completeId: await zenkitList.completeId,
+        stageUuid: await zenkitList.stageUuid,
         workspaceId: zenkitList.workspaceId
       };
       this.syncedLists.push(syncedList);

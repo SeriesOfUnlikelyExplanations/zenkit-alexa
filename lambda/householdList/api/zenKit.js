@@ -26,9 +26,13 @@ class ZenKitClient {
    */
   getWorkspace() {
     return this.handleRequest('users/me/workspacesWithLists')
-      .then(function (body) {
-        return JSON.parse(body).find(item =>
-            item.resourceTags.some(e => e.appType === 'todos'));
+      .then((body) => {
+        var item = JSON.parse(body).find(item =>
+          item.resourceTags.some(e => e.appType === 'todos' && e.tag === 'defaultFolder'));
+        if (typeof item !== 'undefined') {
+          item = JSON.parse(body)[0];
+        }
+        return item
       });
   }
 
@@ -37,19 +41,16 @@ class ZenKitClient {
    * @return {Promise}
    */
   getLists() {
-    return this.handleRequest('users/me/workspacesWithLists')
-      .then(function (body) {
+    return this.getWorkspace()
+      .then((body) => {
         var res = {};
-        JSON.parse(body).find(item =>
-            item.resourceTags.some(e => e.appType === 'todos'))
-          .lists
-          .forEach(d =>
-            res[d.name] = {
-              id: d.id,
-              shortId: d.shortId,
-              workspaceId: d.workspaceId
-            }
-          );
+        body.lists.forEach(item =>
+          res[item.name] = {
+            id: item.id,
+            shortId: item.shortId,
+            workspaceId: item.workspaceId
+          }
+        );
         return res
       });
   }
@@ -91,6 +92,11 @@ class ZenKitClient {
       'name': listName
     };
     return this.handleRequest('workspaces/' + workspaceId + '/lists', 'POST', parameters)
+      .then((item) => {
+        return {id: item.id,
+        shortId: item.shortId,
+        workspaceId: item.workspaceId}
+      })
   }
 
 

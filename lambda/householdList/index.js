@@ -17,37 +17,41 @@ const HouseholdListEventHandler = {
     try {
       // Get latest user attributes from database
       const attributes = await handlerInput.attributesManager.getPersistentAttributes();
-      var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
-      // if accessToken is missing, inform the customer throught their ToDo list.
-      if (accessToken == undefined){
-        const client = new SyncListClient(
-          handlerInput.serviceClientFactory.getListManagementServiceClient());
-        await client.createSyncToDo();
-        throw 'Missing token: ' + JSON.stringify(handlerInput);
-      }
-      // Define request object
-      const request = Object.assign(handlerInput.requestEnvelope.request.body, {
-        type: Alexa.getRequestType(handlerInput.requestEnvelope).split('.').pop()
-      });
-      // Initialize sync list client
-      if ('syncedLists' in attributes && 'alexaId' in attributes.syncedLists[0]) {
-        const client = new SyncListClient(
-          handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken, attributes.syncedLists);
-        // Update synced list attribute based on Zenkit list changes
-        attributes.syncedLists = await client.updateZenkitList(request);
+      if (attributes.hold) {
+        console.log('User is locked for time-base sync');
       } else {
-        const client = new SyncListClient(
-          handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
-        // Update synced list attribute based on Alexa list changes
-        attributes.syncedLists = await client.updateAlexaList(true);
+        var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
+        // if accessToken is missing, inform the customer throught their ToDo list.
+        if (accessToken == undefined){
+          const client = new SyncListClient(
+            handlerInput.serviceClientFactory.getListManagementServiceClient());
+          await client.createSyncToDo();
+          throw 'Missing token. To-do list item created to remind customer to link accounts: ' + JSON.stringify(handlerInput);
+        }
+        // Define request object
+        const request = Object.assign(handlerInput.requestEnvelope.request.body, {
+          type: Alexa.getRequestType(handlerInput.requestEnvelope).split('.').pop()
+        });
+        // Initialize sync list client
+        if (typeof attributes.syncedLists[0] !== 'undefined') {
+          const client = new SyncListClient(
+            handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken, attributes.syncedLists);
+          // Update synced list attribute based on Zenkit list changes
+          attributes.syncedLists = await client.updateZenkitList(request);
+        } else {
+          const client = new SyncListClient(
+            handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
+          // Update synced list attribute based on Alexa list changes
+          attributes.syncedLists = await client.updateAlexaList(true);
+        };
+        console.info('Zenkit lists have been synced.', JSON.stringify(attributes.syncedLists));
+        // Store latest user attributes to database
+        handlerInput.attributesManager.setPersistentAttributes(attributes);
+        await handlerInput.attributesManager.savePersistentAttributes();
+        console.info('User attributes have been saved.');
       };
-      console.info('Zenkit lists have been synced.', JSON.stringify(attributes.syncedLists));
-      // Store latest user attributes to database
-      handlerInput.attributesManager.setPersistentAttributes(attributes);
-      await handlerInput.attributesManager.savePersistentAttributes();
-      console.info('User attributes have been saved.');
     } catch (error) {
-      console.error('Failed to handle household list items event:');
+      console.error('Failed to handle Alexa list items event:');
       console.log(error);
     }
   }
@@ -62,11 +66,15 @@ const SkillEventHandler = {
   },
   async handle(handlerInput) {
     try {
-      // Define attributes object
+      // Get user attributes
       var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
       const attributes = {
-        userId: Alexa.getUserId(handlerInput.requestEnvelope)
+        userId: Alexa.getUserId(handlerInput.requestEnvelope),
+        hold: true
       };
+      //put a hold on the user while we work
+      handlerInput.attributesManager.setPersistentAttributes(attributes);
+      await handlerInput.attributesManager.savePersistentAttributes();
       // Determine accepted permissions
       const permissions = (handlerInput.requestEnvelope.request.body.acceptedPermissions || []).map(
         permission => permission.scope.split(':').pop());
@@ -78,12 +86,14 @@ const SkillEventHandler = {
           handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
         // if accessToken is missing, inform the customer throught their ToDo list.
         if (accessToken == undefined){
+          await handlerInput.attributesManager.deletePersistentAttributes();
           throw 'Missing token: ' + JSON.stringify(handlerInput);
         }
         // Update synced list attribute based on Alexa list changes
         attributes.syncedLists = await client.updateAlexaList(true);
         console.info('Alexa lists have been synced.', JSON.stringify(attributes.syncedLists));
         // Store user attributes to database
+        attributes.hold = false;
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
@@ -113,24 +123,34 @@ const SkillMessagingHandler = {
     try {
       // Get latest user attributes from database
       const attributes = await handlerInput.attributesManager.getPersistentAttributes();
+      //put a hold on the user while we work
+      attributes.hold = true;
+      handlerInput.attributesManager.setPersistentAttributes(attributes);
+      await handlerInput.attributesManager.savePersistentAttributes();
+      // get access token. if accessToken is missing, inform the customer throught their ToDo list.
       var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
-      // Initialize sync list client
-      const client = new SyncListClient(
-        handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
-      // if accessToken is missing, inform the customer throught their ToDo list.
       if (accessToken == undefined){
         await handlerInput.attributesManager.deletePersistentAttributes();
         throw 'Missing token on time-based sync - deleted persistent attributes';
       }
-      // Update synced list attribute based on Alexa list changes if requested
       if (handlerInput.requestEnvelope.request.message.event === 'updateAlexaList') {
-        attributes.syncedLists = await client.updateAlexaList();
-        console.info('Alexa list has been synced.', JSON.stringify(attributes.syncedLists));
+        // Initialize sync list client
+        const client = new SyncListClient(
+          handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
+        // Update synced list attribute based on Alexa list changes if requested
+        if (typeof attributes.syncedLists[0] !== 'undefined') {
+          attributes.syncedLists = await client.updateAlexaList();
+          console.info('Alexa list has been synced.', JSON.stringify(attributes.syncedLists));
+        } else {
+          attributes.syncedLists = await client.updateAlexaList(true);
+          console.info('Alexa list has been synced.', JSON.stringify(attributes.syncedLists));
+        }
+        // Store user attributes to database
+        attributes.hold = false;
+        handlerInput.attributesManager.setPersistentAttributes(attributes);
+        await handlerInput.attributesManager.savePersistentAttributes();
+        console.info('User attributes have been saved.');
       }
-      // Store user attributes to database
-      handlerInput.attributesManager.setPersistentAttributes(attributes);
-      await handlerInput.attributesManager.savePersistentAttributes();
-      console.info('User attributes have been saved.');
     } catch (error) {
       console.error('Failed to handle skill messaging event:');
       console.log(error);
