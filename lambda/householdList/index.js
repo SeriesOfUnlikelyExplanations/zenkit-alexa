@@ -33,7 +33,7 @@ const HouseholdListEventHandler = {
           type: Alexa.getRequestType(handlerInput.requestEnvelope).split('.').pop()
         });
         // Initialize sync list client
-        if (typeof attributes.syncedLists[0] !== 'undefined') {
+        if (typeof attributes.syncedLists !== 'undefined' && typeof attributes.syncedLists[0] !== 'undefined') {
           const client = new SyncListClient(
             handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken, attributes.syncedLists);
           // Update synced list attribute based on Zenkit list changes
@@ -109,6 +109,7 @@ const SkillEventHandler = {
         console.info('User attributes have been deleted.');
       }
     } catch (error) {
+      await handlerInput.attributesManager.deletePersistentAttributes();
       console.error('Failed to handle skill permission event:');
       console.log(error);
     }
@@ -138,7 +139,7 @@ const SkillMessagingHandler = {
         const client = new SyncListClient(
           handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
         // Update synced list attribute based on Alexa list changes if requested
-        if (typeof attributes.syncedLists[0] !== 'undefined') {
+        if (typeof attributes.syncedLists !== 'undefined' && typeof attributes.syncedLists[0] !== 'undefined') {
           attributes.syncedLists = await client.updateAlexaList();
           console.info('Alexa list has been synced.', JSON.stringify(attributes.syncedLists));
         } else {
@@ -150,8 +151,12 @@ const SkillMessagingHandler = {
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
+        handlerInput.context.succeed('context success')
       }
     } catch (error) {
+      attributes.hold = false;
+      handlerInput.attributesManager.setPersistentAttributes(attributes);
+      await handlerInput.attributesManager.savePersistentAttributes();
       console.error('Failed to handle skill messaging event:');
       console.log(error);
     }

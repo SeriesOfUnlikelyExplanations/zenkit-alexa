@@ -29,7 +29,7 @@ class ZenKitClient {
       .then((body) => {
         var item = JSON.parse(body).find(item =>
           item.resourceTags.some(e => e.appType === 'todos' && e.tag === 'defaultFolder'));
-        if (typeof item !== 'undefined') {
+        if (typeof item === 'undefined') {
           item = JSON.parse(body)[0];
         }
         return item

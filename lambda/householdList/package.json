@@ -4,15 +4,19 @@
   "description": "alexa zenkit list synchronization",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require node_modules/ts-node/register/index.js test/skill.spec.ts",
+    "testit": "mocha",
     "runit": "alexa-skill-local",
-    "testit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../test_skill.json",
-    "updateit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../skill.json",
+    "setit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../test_skill.json",
+    "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../skill.json",
     "submitit": "ask api submit -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1",
     "withdrawit": "ask api withdraw -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1"
   },
   "author": "Tom Woodard",
-  "license": "MIT License",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:SeriesOfUnlikelyExplanations/zenkit-alexa.git"
+  },
   "dependencies": {
     "ask-sdk-core": "^2.7.0",
     "ask-sdk-dynamodb-persistence-adapter": "^2.7.0",
@@ -22,7 +26,11 @@
     "request-promise-native": "^1.0.8"
   },
   "devDependencies": {
-    "ask-sdk-test": "^2.3.0",
-    "mocha": "^7.1.2"
+    "aws-lambda-mock-context": "^3.2.1",
+    "aws-sdk-mock": "^5.1.0",
+    "chai": "^4.2.0",
+    "chai-nock": "^1.2.0",
+    "mocha": "^7.1.2",
+    "nock": "^12.0.3"
   }
 }
