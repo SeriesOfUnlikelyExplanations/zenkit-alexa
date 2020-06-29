@@ -2,12 +2,12 @@
   "name": "alexa-zenkit-sync",
   "version": "1.0.0",
   "description": "alexa zenkit list synchronization",
-  "main": "index.js",
+  "main": "lambda/householdlist/index.js",
   "scripts": {
-    "testit": "mocha",
+    "test": "nyc mocha",
     "runit": "alexa-skill-local",
-    "setit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../test_skill.json",
-    "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f ../../skill.json",
+    "setit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /test_skill.json",
+    "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /skill.json",
     "submitit": "ask api submit -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1",
     "withdrawit": "ask api withdraw -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1"
   },
@@ -29,8 +29,8 @@
     "aws-lambda-mock-context": "^3.2.1",
     "aws-sdk-mock": "^5.1.0",
     "chai": "^4.2.0",
-    "chai-nock": "^1.2.0",
     "mocha": "^7.1.2",
-    "nock": "^12.0.3"
+    "nock": "^12.0.3",
+    "nyc": "^15.1.0"
   }
 }

@@ -3,7 +3,7 @@ var expect = require('chai').expect;
 const nock = require('nock');
 const context = require('aws-lambda-mock-context');
 const ctx = context({ timeout: 45 });
-var index = require('../index');
+var index = require('../lambda/householdlist/index');
 
 const req = require('./requestsTestData.js');
 const alexa = require('./alexaTestData.js');
@@ -15,7 +15,7 @@ describe("Testing the skill", function() {
     // mock read AWS dynamo response
     var AWSmock = require('aws-sdk-mock');
     var AWS = require('aws-sdk');
-    AWSMock.setSDKInstance(AWS);
+    AWSmock.setSDKInstance(AWS);
     AWSmock.mock('DynamoDB.DocumentClient', 'get', function (params, callback){
       callback(null, response);
     });

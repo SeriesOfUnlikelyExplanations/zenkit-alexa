@@ -130,12 +130,14 @@ class SyncListClient {
       const alexaList = alexaLists[alexaListName];
       if (!(alexaList)) { continue; }
       const zenkitListItems = await zenkitLists[zenkitListName].items;
+      const alreadySyncedItems = [];
       zenkitListItems.forEach((zenkitItem) => {
         // Determine alexa status based of Zenkit crossed off property
         const zenkitItemStatus = !zenkitItem.completed ? 'active' : 'completed';
         // Find alexa matching item
         const alexaItem = alexaList.items.find(alexaItem =>
-          alexaItem.value.toLowerCase() === zenkitItem.displayString.toLowerCase() && alexaItem.status === zenkitItemStatus);
+          alexaItem.value.toLowerCase() === zenkitItem.displayString.toLowerCase() && alexaItem.status === zenkitItemStatus
+          && !alreadySyncedItems.includes(alexaItem.id));
         if (typeof alexaItem !== 'undefined') {
           // Set alexa item to be updated if crossed off status not synced, otherwise leave untouched
           promises.push(zenkitItemStatus === alexaItem.status ? getItemProperties(alexaItem, zenkitItem) :
@@ -143,6 +145,7 @@ class SyncListClient {
               value: alexaItem.value.substring(0, 256), status: zenkitItemStatus, version: alexaItem.version}
             ).then((item) => getItemProperties(item, zenkitItem))
           );
+          alreadySyncedItems.push(alexaItem.id);
         } else {
           // Set alexa item to be created
           promises.push(
@@ -241,9 +244,7 @@ class SyncListClient {
     alexaItems.forEach((alexaItem) => {
       if (request.type === 'ItemsCreated') {
         // Determine synced item with alexa item value
-        const syncedItem = syncedItems.find(item =>
-          (item.value.toLowerCase() === alexaItem.value.toLowerCase() && alexaItem.status === item.status)
-          || item.alexaId === alexaItem.id);
+        const syncedItem = syncedItems.find(item => item.alexaId === alexaItem.id);
         if (!syncedItem) {
           promises.push(
             // Set zenKit item to be added
