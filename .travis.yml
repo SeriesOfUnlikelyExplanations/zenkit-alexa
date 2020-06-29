@@ -7,6 +7,8 @@ before_install:
 - npm install -g ask-cli
 - npm install -g aws-sdk
 script:
+- ls
+- ls lambda/householdlist
 - npm test
 after_success:
 - echo 'Y' | ask deploy
