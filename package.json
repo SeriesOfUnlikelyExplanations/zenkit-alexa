@@ -18,6 +18,12 @@
     "type": "git",
     "url": "git@github.com:SeriesOfUnlikelyExplanations/zenkit-alexa.git"
   },
+  "nyc": {
+    "reporter": [
+      "json",
+      "html"
+    ]
+  },
   "dependencies": {
     "ask-sdk-core": "^2.7.0",
     "ask-sdk-dynamodb-persistence-adapter": "^2.7.0",
