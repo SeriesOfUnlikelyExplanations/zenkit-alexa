@@ -11,16 +11,7 @@ const zenkit = require('./zenkitTestData.js');
 
 // https://www.npmjs.com/package/aws-sdk-mock
 describe("Testing the skill", function() {
-  before(() => {
-    // mock read AWS dynamo response
-    var AWSmock = require('aws-sdk-mock');
-    var AWS = require('aws-sdk');
-    AWSmock.setSDKInstance(AWS);
-    AWSmock.mock('DynamoDB.DocumentClient', 'get', function (params, callback){
-      callback(null, response);
-    });
-  });
-  this.timeout(45000);
+  this.timeout(4500);
   const alexaNock = nock('https://api.amazonalexa.com')
     .get('/v2/householdlists/')
     .reply(200, alexa.LISTS_DATA)
