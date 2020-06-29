@@ -3,7 +3,7 @@ var expect = require('chai').expect;
 const nock = require('nock');
 const context = require('aws-lambda-mock-context');
 const ctx = context({ timeout: 45 });
-var index = require('../lambda/householdlist/index');
+var index = require('/lambda/householdlist/index');
 
 const req = require('./requestsTestData.js');
 const alexa = require('./alexaTestData.js');
