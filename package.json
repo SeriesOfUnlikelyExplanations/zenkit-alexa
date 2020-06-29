@@ -5,6 +5,7 @@
   "main": "lambda/householdlist/index.js",
   "scripts": {
     "test": "nyc mocha",
+    "posttest": "nyc report && codecov -f coverage/*.json",
     "runit": "alexa-skill-local",
     "setit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /test_skill.json",
     "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /skill.json",
