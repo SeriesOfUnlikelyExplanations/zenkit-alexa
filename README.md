@@ -1,7 +1,7 @@
 # alexa-zenkit-sync
 
 Unofficial Zenkit Alexa Shopping List Sync Skill
-[![Build Status](https://travis-ci.com/SeriesOfUnlikelyExplanations/zenkit-alexa.svg?branch=master)](https://travis-ci.org/SeriesOfUnlikelyExplanations/zenkit-alexa) [![codecov](https://codecov.io/gh/SeriesOfUnlikelyExplanations/zenkit-alexa/branch/master/graph/badge.svg)](https://codecov.io/gh/SeriesOfUnlikelyExplanations/zenkit-alexa)
+[![Build Status](https://travis-ci.com/SeriesOfUnlikelyExplanations/zenkit-alexa.svg?branch=master)](https://travis-ci.com/SeriesOfUnlikelyExplanations/zenkit-alexa) [![codecov](https://codecov.io/gh/SeriesOfUnlikelyExplanations/zenkit-alexa/branch/master/graph/badge.svg)](https://codecov.io/gh/SeriesOfUnlikelyExplanations/zenkit-alexa)
 
 ## Disclaimer
 
