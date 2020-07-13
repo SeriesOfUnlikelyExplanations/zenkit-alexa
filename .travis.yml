@@ -2,6 +2,7 @@ language: node_js
 node_js:
 - '12'
 before_install:
+- ls
 - chmod +x aws_credential_travis.sh
 - "./aws_credential_travis.sh"
 - cd lambda/householdList
