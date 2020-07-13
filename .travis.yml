@@ -13,7 +13,6 @@ before_install:
 - ./awscli-bundle/install -b ~/bin/aws
 - export PATH=~/bin:$PATH
 
-
 script:
 - npm test
 after_success:
