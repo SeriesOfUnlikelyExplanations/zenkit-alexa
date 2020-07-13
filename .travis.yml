@@ -15,4 +15,5 @@ after_success:
 - pwd
 - ls -a
 - ls .ask -a
+- chmod +x hooks/pre_deploy_hook.sh
 - ask deploy
