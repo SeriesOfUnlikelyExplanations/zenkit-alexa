@@ -5,6 +5,7 @@ var sinon = require('sinon');
 const context = require('aws-lambda-mock-context');
 const ctx = context({ timeout: 45 });
 var index = require('../lambda/householdList/index');
+const { DynamoDbPersistenceAdapter } = require('ask-sdk-dynamodb-persistence-adapter');
 
 const req = require('./requestsTestData.js');
 const alexa = require('./alexaTestData.js');
@@ -73,12 +74,9 @@ describe("Testing the skill", function() {
         return body
       })
       .reply(200);
-    //~ AWS.mock('DynamoDB.DocumentClient', 'get', function (params, callback){
-      //~ callback(null, "successfully put item in database");
-    //~ });
-    //~ AWS.mock('DynamoDB.DocumentClient', 'put', function(params, callback) {
-      //~ callback(null, 'success');
-    //~ });
+    //sinon.stub(DynamoDbPersistenceAdapter).returns({});
+
+
     index.handler(req.TIME_SYNC, ctx, (err, data) => { })
     ctx.Promise
       .then(() => {
