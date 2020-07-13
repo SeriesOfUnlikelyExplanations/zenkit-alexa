@@ -162,7 +162,7 @@ class SyncListClient {
         alexaList.items
           .filter(alexaItem =>
             zenkitListItems.every(zenkitItem =>
-              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase() && alexaItem.status !== (!zenkitItem.completed ? 'active' : 'completed')))
+              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase() && alexaItem.status !== (zenkitItem.completed ? 'active' : 'completed')))
           .forEach(alexaItem =>
             promises.push(
               this.zenKitClient.addItem(
@@ -175,12 +175,10 @@ class SyncListClient {
         alexaList.items.forEach((alexaItem) => {
           const zenkitItem = zenkitListItems.find(zenkitItem =>
             zenkitItem.displayString.toLowerCase() === alexaItem.value.toLowerCase()
-              && alexaItem.status === (!zenkitItem.completed ? 'active' : 'completed')
+              && alexaItem.status === (zenkitItem.completed ? 'active' : 'completed')
               && !alreadySyncedItems.includes(alexaItem.id));
           if (typeof zenkitItem === 'undefined') {
-            promises.push(
-              this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)
-            );
+            promises.push(this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id));
           }
           alreadySyncedItems.push(alexaItem.id);
         });
