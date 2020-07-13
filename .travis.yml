@@ -12,6 +12,7 @@ script:
 - npm test
 after_success:
 - cd ../..
+- pwd
 - ls -a
 - ls .ask -a
 - ask deploy
