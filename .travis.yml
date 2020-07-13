@@ -10,4 +10,5 @@ before_install:
 script:
 - npm test
 after_success:
+- cd ../..
 - ask deploy
