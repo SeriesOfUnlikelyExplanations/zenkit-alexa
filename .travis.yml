@@ -11,7 +11,7 @@ before_install:
 script:
 - npm test
 after_success:
-- ls
 - cd ../..
-- ls
+- ls -a
+- ls .ask -a
 - ask deploy
