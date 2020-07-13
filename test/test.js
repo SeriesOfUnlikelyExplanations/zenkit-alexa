@@ -1,6 +1,7 @@
 var assert = require('assert');
 var expect = require('chai').expect;
 const nock = require('nock');
+var sinon = require('sinon');
 const context = require('aws-lambda-mock-context');
 const ctx = context({ timeout: 45 });
 var index = require('../lambda/householdList/index');
