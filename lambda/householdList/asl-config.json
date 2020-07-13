@@ -1,4 +1,15 @@
 {
-    "skillId" : "amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1",
-    "stage" : "development"
-}
+  "profiles": {
+    "default": {
+      "token": {
+        "access_token": "ASK_ACCESS_TOKEN,
+        "refresh_token": "ASK_REFRESH_TOKEN",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "expires_at": "2020-07-13T18:05:30.850Z"
+      },
+      "vendor_id": "M1LGU4G2R50Q4X",
+      "aws_profile": "default"
+     }
+   }
+ }
