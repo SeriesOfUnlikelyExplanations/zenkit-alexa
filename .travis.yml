@@ -13,7 +13,7 @@ script:
 after_success:
 - cd ../..
 - pwd
-- ls -a
-- ls .ask -a
 - chmod +x hooks/pre_deploy_hook.sh
-- ask deploy
+- aws --version
+- ask --version
+- ask deploy --debug
