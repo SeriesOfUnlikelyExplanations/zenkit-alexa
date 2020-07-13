@@ -8,6 +8,12 @@ before_install:
 - cd lambda/householdList
 - npm install -g ask-cli@^1.0.0
 - npm install -g aws-sdk
+- curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+- unzip awscli-bundle.zip
+- ./awscli-bundle/install -b ~/bin/aws
+- export PATH=~/bin:$PATH
+
+
 script:
 - npm test
 after_success:
