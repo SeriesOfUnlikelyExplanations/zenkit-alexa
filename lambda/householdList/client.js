@@ -174,14 +174,15 @@ class SyncListClient {
         const alreadySyncedItems = [];
         alexaList.items.forEach((alexaItem) => {
           const zenkitItem = zenkitListItems.find(zenkitItem =>
-            zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase()
-              && alexaItem.status !== (!zenkitItem.completed ? 'active' : 'completed')
+            zenkitItem.displayString.toLowerCase() === alexaItem.value.toLowerCase()
+              && alexaItem.status === (!zenkitItem.completed ? 'active' : 'completed')
               && !alreadySyncedItems.includes(alexaItem.id));
-          if (typeof zenkitItem !== 'undefined') {
+          if (typeof zenkitItem === 'undefined') {
             promises.push(
               this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)
             );
           }
+          alreadySyncedItems.push(alexaItem.id);
         });
       }
       // put all the synced items into the synced lists
