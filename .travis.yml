@@ -6,7 +6,7 @@ before_install:
 - chmod +x credential_travis.sh
 - "./credential_travis.sh"
 - cd lambda/householdList
-- npm install -g ask-cli
+- npm install -g ask-cli@^1.0.0
 - npm install -g aws-sdk
 script:
 - npm test
