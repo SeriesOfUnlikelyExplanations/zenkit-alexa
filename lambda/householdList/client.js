@@ -174,7 +174,7 @@ class SyncListClient {
         alexaList.items
           .filter(alexaItem =>
             zenkitListItems.every(zenkitItem =>
-              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase()))
+              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase() && alexaItem.status !== (!zenkitItem.completed ? 'active' : 'completed')))
           .forEach(alexaItem =>
             promises.push(
               this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)));
