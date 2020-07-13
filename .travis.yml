@@ -2,9 +2,9 @@ language: node_js
 node_js:
 - '12'
 before_install:
-- cd lambda/householdList
 - chmod +x aws_credential_travis.sh
 - "./aws_credential_travis.sh"
+- cd lambda/householdList
 - npm install -g ask-cli
 - npm install -g aws-sdk
 script:
