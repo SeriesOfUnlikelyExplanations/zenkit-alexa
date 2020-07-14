@@ -132,8 +132,8 @@ class SyncListClient {
       const zenkitListItems = await zenkitLists[zenkitListName].items;
       const alreadySyncedItems = [];
       zenkitListItems.forEach((zenkitItem) => {
-        // Determine alexa status based of Zenkit crossed off property
-        const zenkitItemStatus = !zenkitItem.completed ? 'active' : 'completed';
+        // Determine alexa status based of Zenkit completed property
+        const zenkitItemStatus = zenkitItem.completed ? 'completed' : 'active';
         // Find alexa matching item
         const alexaItem = alexaList.items.find(alexaItem =>
           alexaItem.value.toLowerCase() === zenkitItem.displayString.toLowerCase() && alexaItem.status === zenkitItemStatus
@@ -162,7 +162,7 @@ class SyncListClient {
         alexaList.items
           .filter(alexaItem =>
             zenkitListItems.every(zenkitItem =>
-              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase() && alexaItem.status !== (zenkitItem.completed ? 'active' : 'completed')))
+              zenkitItem.displayString.toLowerCase() !== alexaItem.value.toLowerCase() && alexaItem.status !== (zenkitItem.completed ? 'completed' : 'active')))
           .forEach(alexaItem =>
             promises.push(
               this.zenKitClient.addItem(
@@ -175,10 +175,12 @@ class SyncListClient {
         alexaList.items.forEach((alexaItem) => {
           const zenkitItem = zenkitListItems.find(zenkitItem =>
             zenkitItem.displayString.toLowerCase() === alexaItem.value.toLowerCase()
-              && alexaItem.status === (zenkitItem.completed ? 'active' : 'completed')
+              && alexaItem.status === (zenkitItem.completed ? 'completed' : 'active')
               && !alreadySyncedItems.includes(alexaItem.id));
           if (typeof zenkitItem === 'undefined') {
-            promises.push(this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id));
+            promises.push(
+              this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)
+            );
           }
           alreadySyncedItems.push(alexaItem.id);
         });
