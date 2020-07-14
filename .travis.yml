@@ -2,7 +2,6 @@ language: node_js
 node_js:
 - '12'
 before_install:
-- ls
 - chmod +x credential_travis.sh
 - "./credential_travis.sh"
 - cd lambda/householdList
@@ -17,8 +16,5 @@ script:
 - npm test
 after_success:
 - cd ../..
-- pwd
 - chmod +x hooks/pre_deploy_hook.sh
-- aws --version
-- ask --version
 - ask deploy --debug
