@@ -176,9 +176,6 @@ const LogRequestInterceptor = {
   process(handlerInput) {
     if (typeof handlerInput.requestEnvelope !== 'undefined') {
       console.log('Request received:', JSON.stringify(handlerInput.requestEnvelope));
-      console.log(Object.getOwnPropertyNames(DynamoDbPersistenceAdapter.prototype))
-      var util = require("util");
-      console.log(util.inspect(persistenceAdapter.__proto__, {depth: null}))
     }
   }
 };
