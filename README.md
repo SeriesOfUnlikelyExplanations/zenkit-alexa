@@ -26,8 +26,5 @@ Visit https://todo.zenkit.com to download the app and get started!
 ### For issues/General queries/Feature requests or to just say thanks, please use the github issues below:
 https://github.com/SeriesOfUnlikelyExplanations/zenkit-alexa/issues
 
-### Known bugs:
-None
-
 ## Special thanks
 Special thanks to @jsetton for creating the ourGrocieries Alexa sync that this skill is based off of - https://github.com/jsetton/alexa-ourgroceries-sync
