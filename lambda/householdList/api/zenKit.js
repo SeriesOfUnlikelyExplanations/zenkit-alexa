@@ -201,7 +201,8 @@ class ZenKitClient {
       options['json'] = true
     }
     console.log(options);
-    return request(options);
+    const response = request(options);
+    return response;
   }
 }
 
