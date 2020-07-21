@@ -154,11 +154,12 @@ const SkillMessagingHandler = {
         handlerInput.context.succeed('context success')
       }
     } catch (error) {
+      console.error('Failed to handle skill messaging event:');
+      console.log(error);
+      const attributes = await handlerInput.attributesManager.getPersistentAttributes();
       attributes.hold = false;
       handlerInput.attributesManager.setPersistentAttributes(attributes);
       await handlerInput.attributesManager.savePersistentAttributes();
-      console.error('Failed to handle skill messaging event:');
-      console.log(error);
     }
   }
 }
