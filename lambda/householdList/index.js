@@ -169,6 +169,7 @@ const ErrorHandler = {
   },
   handle(handlerInput, error) {
     console.error('Request error:', JSON.stringify(error));
+    console.log(error);
   }
 };
 
