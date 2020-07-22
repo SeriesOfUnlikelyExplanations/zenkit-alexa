@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@v2
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -33,10 +33,12 @@ jobs:
           sed -e 's/ASK_ACCESS_TOKEN/${ASK_ACCESS_TOKEN}/g' -e \
            's/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g' ./ask_config.json > ~/.ask/cli_config
 
-      - run: |
+      - name: Run tests
+        run: |
           cd lambda/householdList
+          npm install
           npm test
-      - run: nyc report
+          nyc report
       - run: |
           cd ../..
           chmod +x hooks/pre_deploy_hook.sh
