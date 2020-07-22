@@ -31,6 +31,7 @@ jobs:
           mkdir -p ~/.ask
           sed -e 's/ASK_ACCESS_TOKEN/${ASK_ACCESS_TOKEN}/g' -e \
            's/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g' ./ask_config.json > ~/.ask/cli_config
+          echo ${ASK_REFRESH_TOKEN}
 
       - name: Run tests
         run: |
@@ -40,7 +41,7 @@ jobs:
       - name: Deploy
         run: |
           chmod +x ./hooks/pre_deploy_hook.sh
-          echo '${ASK_REFRESH_TOKEN}'
+          echo ${ASK_REFRESH_TOKEN}
           ask deploy --debug
       - uses: codecov/codecov-action@v1
         with:
