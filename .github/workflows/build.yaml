@@ -38,7 +38,8 @@ jobs:
           cd lambda/householdList
           npm install
           npm test
-      - run: |
+      - name: Deploy
+        run: |
           cd ../..
           chmod +x hooks/pre_deploy_hook.sh
           ask deploy --debug
