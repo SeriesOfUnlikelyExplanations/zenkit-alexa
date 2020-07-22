@@ -25,6 +25,7 @@ jobs:
         run: |
           npm install -g ask-cli@^1.0.0
           mkdir -p ~/.ask
+          ls
           sed -e 's/ASK_ACCESS_TOKEN/${ASK_ACCESS_TOKEN}/g' -e \
            's/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g' ask_config.json > ~/.ask/cli_config
 
