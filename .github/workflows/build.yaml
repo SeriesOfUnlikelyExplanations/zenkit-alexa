@@ -40,6 +40,7 @@ jobs:
       - name: Deploy
         run: |
           chmod +x ./hooks/pre_deploy_hook.sh
+          echo '${ASK_REFRESH_TOKEN}'
           ask deploy --debug
       - uses: codecov/codecov-action@v1
         with:
