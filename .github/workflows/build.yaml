@@ -38,13 +38,12 @@ jobs:
           cd lambda/householdList
           npm install
           npm test
-          nyc report
       - run: |
           cd ../..
           chmod +x hooks/pre_deploy_hook.sh
           ask deploy --debug
       - uses: codecov/codecov-action@v1
         with:
-         file: coverage/*.json
-         fail_ci_if_error: true
+          file: coverage/*.json
+          fail_ci_if_error: true
 
