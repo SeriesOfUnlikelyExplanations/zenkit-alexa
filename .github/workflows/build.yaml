@@ -1,0 +1,46 @@
+name: Deploy
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+jobs:
+  build:
+    name: Build and deploy
+    runs-on: debian-latest
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure ASK
+        run: |
+          npm install -g ask-cli@^1.0.0
+          mkdir -p ~/.ask
+          sed -e s/ASK_ACCESS_TOKEN/${ASK_ACCESS_TOKEN}/g -e \
+              s/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g ask_config.json > ~/.ask/cli_config
+
+      - run: |
+        cd lambda/householdList
+        npm test
+      - run: nyc report
+      - run: |
+        cd ../..
+        chmod +x hooks/pre_deploy_hook.sh
+        ask deploy --debug
+      - uses: codecov/codecov-action@v1
+        with:
+         file: coverage/*.json
+        fail_ci_if_error: true
+
+
+
+script:
+- npm test
+after_success:
+
