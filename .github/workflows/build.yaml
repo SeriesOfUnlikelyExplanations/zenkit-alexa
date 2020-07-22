@@ -36,11 +36,5 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
          file: coverage/*.json
-        fail_ci_if_error: true
-
-
-
-script:
-- npm test
-after_success:
+         fail_ci_if_error: true
 
