@@ -26,13 +26,13 @@ jobs:
               s/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g ask_config.json > ~/.ask/cli_config
 
       - run: |
-        cd lambda/householdList
-        npm test
+          cd lambda/householdList
+          npm test
       - run: nyc report
       - run: |
-        cd ../..
-        chmod +x hooks/pre_deploy_hook.sh
-        ask deploy --debug
+          cd ../..
+          chmod +x hooks/pre_deploy_hook.sh
+          ask deploy --debug
       - uses: codecov/codecov-action@v1
         with:
          file: coverage/*.json
