@@ -22,11 +22,11 @@ jobs:
           env:
             ASK_ACCESS_TOKEN: ${{ secrets.ASK_ACCESS_TOKEN }}
             ASK_REFRESH_TOKEN: ${{ secrets.ASK_REFRESH_TOKEN }}
-        run: |
-          npm install -g ask-cli@^1.0.0
-          mkdir -p ~/.ask
-          sed -e s/ASK_ACCESS_TOKEN/${ASK_ACCESS_TOKEN}/g -e \
-              s/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g ask_config.json > ~/.ask/cli_config
+          run: |
+            npm install -g ask-cli@^1.0.0
+            mkdir -p ~/.ask
+            sed -e s/ASK_ACCESS_TOKEN/${ASK_ACCESS_TOKEN}/g -e \
+                s/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g ask_config.json > ~/.ask/cli_config
 
       - run: |
           cd lambda/householdList
