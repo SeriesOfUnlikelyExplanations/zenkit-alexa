@@ -15,12 +15,14 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: '${{ secrets.AWS_ACCESS_KEY_ID }}'
           aws-secret-access-key: '${{ secrets.AWS_SECRET_ACCESS_KEY }}'
           aws-region: us-east-1
+
       - name: Configure ASK
         shell: bash
         env:
@@ -29,15 +31,15 @@ jobs:
         run: |
           npm install -g ask-cli@^1.0.0
           mkdir -p ~/.ask
-          sed -e 's/ASK_ACCESS_TOKEN/${ASK_ACCESS_TOKEN}/g' -e \
-           's/ASK_REFRESH_TOKEN/${ASK_REFRESH_TOKEN}/g' ./ask_config.json > ~/.ask/cli_config
-          echo ${ASK_REFRESH_TOKEN}
+          sed -e "s/ASK_ACCESS_TOKEN/$ASK_ACCESS_TOKEN/g" -e \
+           "s/ASK_REFRESH_TOKEN/$ASK_REFRESH_TOKEN/g" ./ask_config.json > ~/.ask/cli_config
 
       - name: Run tests
         run: |
           cd lambda/householdList
           npm install
           npm test
+
       - name: Deploy
         run: |
           chmod +x ./hooks/pre_deploy_hook.sh
