@@ -3,7 +3,7 @@
 //https://developer.amazon.com/en-US/docs/alexa/custom-skills/access-the-alexa-shopping-and-to-do-lists.html#getList
 
 module.exports = Object.freeze({
-  // 'https://todo.zenkit.com/api/v1/users/me/workspacesWithLists'
+  // --------------------------------------------------- 'https://todo.zenkit.com/api/v1/users/me/workspacesWithLists' -------------------------------------------------------------
   ZENKIT_WORKSPACE_DATA: [{
     "id": 442548,
     "shortId": "zDRYcB7RqS",
@@ -273,7 +273,7 @@ module.exports = Object.freeze({
       }]
     }]
   }],
-  // https://todo.zenkit.com/api/v1/lists/{listId}/elements
+  // -------------------------------------------------------- https://todo.zenkit.com/api/v1/lists/{listId}/elements --------------------------------------------------------------
   ELEMENTS_DATA: [{
     "id": 13435090,
     "shortId": "uW9yHpUuB-",
@@ -598,7 +598,7 @@ module.exports = Object.freeze({
       "created_by": 400423
     }]
   }],
-  //https://todo.zenkit.com/api/v1/lists/{listId}/entries/filter
+  // ------------------------------------------------- https://todo.zenkit.com/api/v1/lists/{listId}/entries/filter --------------------------------------------------------------------
   TODO_ENTRIES_DATA: [{
     "id": 62,
     "shortId": "R0yU8kNKp",

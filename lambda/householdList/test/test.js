@@ -18,7 +18,7 @@ describe("Testing the skill", function() {
       .get('/v2/householdlists/')
       .reply(200, alexa.LISTS_DATA)
       .get('/v2/householdlists/todo_list_list_id/active/')
-      .reply(200, alexa.TODO_LIST_DATA)
+      .reply(200, alexa.EMPTY_TODO_LIST_DATA)
       .get('/v2/householdlists/todo_list_list_id/completed/')
       .reply(200, alexa.EMPTY_TODO_LIST_DATA)
       .get('/v2/householdlists/shopping_list_list_id/active/')
@@ -80,26 +80,35 @@ describe("Testing the skill", function() {
   });
   this.timeout(450);
 
-  describe("test the time based sync", function() {
-    it('created new item in Alexa from Zenkit', (done) => {
+  describe("test zenkit --> alexa", function() {
+
+    it('created new item', (done) => {
       nock('https://todo.zenkit.com')
-        .post('/api/v1/lists/1225299/entries'
-          , function (body) {
-          expect(body.sortOrder).to.equal('lowest');
-          expect(body.displayString).to.equal('todo item two');
-          expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_text']).to.equal('todo item two');
-          expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_searchText']).to.equal('todo item two');
-          expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_textType']).to.equal('plain');
-          return body
+        .post('/api/v1/lists/1225299/entries', (body) => {
+            console.log('todo item two created in zenkit');
+            expect(body.sortOrder).to.equal('lowest');
+            expect(body.displayString).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_text']).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_searchText']).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_textType']).to.equal('plain');
+            return body
         })
         .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
+
       nock('https://api.amazonalexa.com')
         .persist()
-        .post('/v2/householdlists/shopping_list_list_id/items/', (body) => {
-          expect(body.sortOrder).to.equal('todo');
+        .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
+          console.log('todo item one created in Alexa');
+          expect(body.value).to.equal('todo item one');
+          expect(body.status).to.equal('active');
           return body
         })
-        .reply(200);
+        .reply(200, { "id": 'todo_list_item_id',
+          "value": 'todo item one',
+          "status": 'active',
+          "createdTime": 'Wed Sep 27 10:46:30 UTC 2017',
+          "updatedTime": 'Wed Sep 27 10:46:30 UTC 2017'
+        });
 
       index.handler(req.TIME_SYNC, ctx, (err, data) => { })
       ctx.Promise
@@ -114,11 +123,11 @@ describe("Testing the skill", function() {
     });
   });
 
-  describe("test add item from Alexa (not present in Zenkit)", function() {
+  describe("test alexa --> zenkit", function() {
     it('created new item in Zenkit from Alexa', (done) => {
       nock('https://todo.zenkit.com')
-        .post('/api/v1/lists/1067607/entries'
-          ,function (body) {
+        .post('/api/v1/lists/1067607/entries', (body) => {
+            console.log('todo item added created in Zenkit');
             expect(body.sortOrder).to.equal('lowest');
             expect(body.displayString).to.equal('todo item added');
             expect(body['febfd797-225d-48b4-8cec-61655c2cb240_text']).to.equal('todo item added');
@@ -128,18 +137,10 @@ describe("Testing the skill", function() {
           }
         )
         .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
-        .post('/api/v1/lists/1263156/entries')
-        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
-        .post('/api/v1/lists/1347812/entries')
-        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
-
-      nock('https://api.amazonalexa.com')
-        .persist()
-        .post('/v2/householdlists/shopping_list_list_id/items/', (body) => {
-          expect(body.sortOrder).to.equal('todo');
-          return body
-        })
-        .reply(200);
+        //~ .post('/api/v1/lists/1263156/entries')
+        //~ .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
+        //~ .post('/api/v1/lists/1347812/entries')
+        //~ .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
 
       index.handler(req.ITEMS_CREATED_WITH_TOKEN, ctx, (err, data) => { })
       ctx.Promise
