@@ -137,10 +137,6 @@ describe("Testing the skill", function() {
           }
         )
         .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
-        //~ .post('/api/v1/lists/1263156/entries')
-        //~ .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
-        //~ .post('/api/v1/lists/1347812/entries')
-        //~ .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
 
       index.handler(req.ITEMS_CREATED_WITH_TOKEN, ctx, (err, data) => { })
       ctx.Promise
