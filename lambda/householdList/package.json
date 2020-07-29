@@ -30,7 +30,8 @@
     "ask-sdk-model": "^1.25.1",
     "aws-sdk": "^2.713.0",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.8"
+    "request-promise-native": "^1.0.8",
+    "lodash": "^4.17.19"
   },
   "devDependencies": {
     "aws-lambda-mock-context": "^3.2.1",
