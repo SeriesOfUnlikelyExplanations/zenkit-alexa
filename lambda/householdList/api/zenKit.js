@@ -99,7 +99,6 @@ class ZenKitClient {
       })
   }
 
-
   /**
    * Delete list
    * @param {int} shortId

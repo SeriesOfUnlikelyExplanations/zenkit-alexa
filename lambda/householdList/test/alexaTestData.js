@@ -187,5 +187,14 @@ module.exports = Object.freeze({
     "createdTime": 'Wed Sep 27 10:46:30 UTC 2017', // created time (Wed Sep 27 10:46:30 UTC 2017)
     "updatedTime": 'Wed Sep 27 10:46:30 UTC 2017', // updated time (Wed Sep 27 10:46:30 UTC 2017)
     "href": 'url'  // URL to retrieve the item (String)
+  },
+ TODO_LIST_ITEM_ADDED_DATA: {
+    "id": 'todo_list_item_added_id',    // item id (String, limit 60 characters)
+    "version": 1, // item version (Positive integer)
+    "value": 'todo item added', // item value (String, limit 256 characters)
+    "status": 'active', // item status (Enum: "active" or "completed")
+    "createdTime": 'Wed Sep 27 10:46:30 UTC 2017', // created time (Wed Sep 27 10:46:30 UTC 2017)
+    "updatedTime": 'Wed Sep 27 10:46:30 UTC 2017', // updated time (Wed Sep 27 10:46:30 UTC 2017)
+    "href": 'url'  // URL to retrieve the item (String)
   }
 });

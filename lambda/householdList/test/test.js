@@ -13,8 +13,8 @@ const zenkit = require('./zenkitTestData.js');
 
 // https://sinonjs.org/how-to/stub-dependency/
 describe("Testing the skill", function() {
-  beforeEach(function() {
-    const alexaNock = nock('https://api.amazonalexa.com')
+  before(function() {
+    nock('https://api.amazonalexa.com')
       .get('/v2/householdlists/')
       .reply(200, alexa.LISTS_DATA)
       .get('/v2/householdlists/todo_list_list_id/active/')
@@ -30,11 +30,15 @@ describe("Testing the skill", function() {
       .get('/v2/householdlists/custom_list_list_id/completed/')
       .reply(200, alexa.EMPTY_CUSTOM_LIST_DATA)
       .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_id/')
-      .reply(200, alexa.EMPTY_CUSTOM_LIST_DATA)
+      .reply(200, alexa.TODO_LIST_ITEM_DATA)
+      .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_added_id/')
+      .reply(200, alexa.TODO_LIST_ITEM_ADDED_DATA);
 
-    const zenkitNock = nock('https://todo.zenkit.com')
+    nock('https://todo.zenkit.com')
       .get('/api/v1/users/me/workspacesWithLists')
       .reply(200, zenkit.ZENKIT_WORKSPACE_DATA)
+      .post('/api/v1/workspaces/442548/lists')
+      .reply(200, zenkit.GET_LISTS_IN_WORKSPACE)
       .get('/api/v1/lists/rKFIotGNz/elements')
       .reply(200, zenkit.ELEMENTS_DATA)
       .get('/api/v1/lists/D3vxohN8O/elements')
@@ -49,13 +53,36 @@ describe("Testing the skill", function() {
       .reply(200, zenkit.SHOPPING_ENTRIES_DATA)
       .post('/api/v1/lists/1347812/entries/filter')
       .reply(200, zenkit.CUSTOM_ENTRIES_DATA)
-      sinon.stub(DynamoDbPersistenceAdapter.prototype, 'saveAttributes').returns(true);
+      .post('/api/v1/lists/1263156/entries')
+      .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
+      .post('/api/v1/lists/1347812/entries')
+      .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
+
+    sinon.stub(DynamoDbPersistenceAdapter.prototype, 'saveAttributes').returns(true);
+    sinon.stub(DynamoDbPersistenceAdapter.prototype, 'getAttributes')
+      .withArgs(sinon.match( (args) => {
+        if (args.context.System.user.userId == "amzn1.ask.account.time_test") {
+          return true
+        } else {
+          return false
+        };
+      }))
+      .returns({})
+      .withArgs(sinon.match( (args) => {
+        if (args.context.System.user.userId == "amzn1.ask.account.create_test") {
+          return true
+        } else {
+          return false
+        };
+      }))
+      .returns(req.GET_ATRTIBUTES_FOR_CREATE_ITEM);
+
   });
-  this.timeout(4500);
+  this.timeout(450);
 
   describe("test the time based sync", function() {
-    it('created new item', (done) => {
-      const zenkitExpectedNock = nock('https://todo.zenkit.com')
+    it('created new item in Alexa from Zenkit', (done) => {
+      nock('https://todo.zenkit.com')
         .post('/api/v1/lists/1225299/entries'
           , function (body) {
           expect(body.sortOrder).to.equal('lowest');
@@ -66,12 +93,7 @@ describe("Testing the skill", function() {
           return body
         })
         .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
-        .post('/api/v1/lists/1263156/entries')
-        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
-        .post('/api/v1/lists/1347812/entries')
-        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
-
-      const alexaExpectedNock = nock('https://api.amazonalexa.com')
+      nock('https://api.amazonalexa.com')
         .persist()
         .post('/v2/householdlists/shopping_list_list_id/items/', (body) => {
           expect(body.sortOrder).to.equal('todo');
@@ -84,14 +106,54 @@ describe("Testing the skill", function() {
         .then(() => {
           console.log('Success!');
           done();
-          nock.cleanAll();
         })
         .catch(err => {
-          assert(false, err);;
-          nock.cleanAll();
-          AWS.restore();
+          assert(false, err);
           done();
         });
     });
+  });
+
+  describe("test add item from Alexa (not present in Zenkit)", function() {
+    it('created new item in Zenkit from Alexa', (done) => {
+      nock('https://todo.zenkit.com')
+        .post('/api/v1/lists/1067607/entries'
+          ,function (body) {
+            expect(body.sortOrder).to.equal('lowest');
+            expect(body.displayString).to.equal('todo item added');
+            expect(body['febfd797-225d-48b4-8cec-61655c2cb240_text']).to.equal('todo item added');
+            expect(body['febfd797-225d-48b4-8cec-61655c2cb240_searchText']).to.equal('todo item added');
+            expect(body['febfd797-225d-48b4-8cec-61655c2cb240_textType']).to.equal('plain');
+            return body
+          }
+        )
+        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
+        .post('/api/v1/lists/1263156/entries')
+        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
+        .post('/api/v1/lists/1347812/entries')
+        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
+
+      nock('https://api.amazonalexa.com')
+        .persist()
+        .post('/v2/householdlists/shopping_list_list_id/items/', (body) => {
+          expect(body.sortOrder).to.equal('todo');
+          return body
+        })
+        .reply(200);
+
+      index.handler(req.ITEMS_CREATED_WITH_TOKEN, ctx, (err, data) => { })
+      ctx.Promise
+        .then(() => {
+          console.log('Success!');
+          done();
+        })
+        .catch(err => {
+          assert(false, err);;
+          done();
+        });
+    });
+  });
+  after(function () {
+    nock.cleanAll();
   });
 });

@@ -757,5 +757,151 @@ module.exports = Object.freeze({
     "created_by_displayname": "Tom Woodard",
     "updated_by_displayname": "Tom Woodard",
     "occurrence": null
-  }
+  },
+  GET_LISTS_IN_WORKSPACE: [
+    {
+      "id": 1067607,
+      "shortId": "N4uKj7EcZw",
+      "uuid": "6d80c792-9221-460b-809d-bc6681b4214e",
+      "workspaceId": 442548,
+      "backgroundId": null,
+      "name": "Inbox",
+      "itemName": null,
+      "itemNamePlural": null,
+      "description": "",
+      "iconClassNames": null,
+      "iconColor": null,
+      "iconBackgroundColor": null,
+      "isBuilding": false,
+      "isMigrating": false,
+      "isPublic": false,
+      "sortOrder": 1,
+      "formulaTSortOrder": null,
+      "defaultViewModus": 3,
+      "visibility": 1,
+      "settings": null,
+      "created_at": "2020-04-07T15:27:28.388Z",
+      "updated_at": "2020-04-07T15:27:28.388Z",
+      "deprecated_at": null,
+      "scheduled_for_deletion_at": null,
+      "created_by": 400423,
+      "resourceTags": [
+        {
+          "uuid": "dfb37487-5f76-4912-91c7-c3fe1127ccef",
+          "tag": "inbox",
+          "appType": "todos",
+          "isOwner": true,
+          "created_by": 400423
+        }
+      ]
+    },
+    {
+      "id": 1225299,
+      "shortId": "rKFIotGNz",
+      "uuid": "31344011-d7a9-4d06-89c9-8e4f0aed9a38",
+      "workspaceId": 442548,
+      "backgroundId": null,
+      "name": "Shopping list",
+      "itemName": null,
+      "itemNamePlural": null,
+      "description": "",
+      "iconClassNames": null,
+      "iconColor": null,
+      "iconBackgroundColor": null,
+      "isBuilding": false,
+      "isMigrating": false,
+      "isPublic": false,
+      "sortOrder": 20,
+      "formulaTSortOrder": null,
+      "defaultViewModus": 3,
+      "visibility": 1,
+      "settings": null,
+      "created_at": "2020-04-21T17:09:57.010Z",
+      "updated_at": "2020-04-21T17:09:57.010Z",
+      "deprecated_at": null,
+      "scheduled_for_deletion_at": null,
+      "created_by": 400423,
+      "resourceTags": [
+        {
+          "uuid": "30567923-4aef-4341-b9cd-0a4aac1cdda2",
+          "tag": "list",
+          "appType": "todos",
+          "isOwner": true,
+          "created_by": 400423
+        }
+      ]
+    },
+    {
+      "id": 1263156,
+      "shortId": "D3vxohN8O",
+      "uuid": "866c15a7-ea13-49dc-9bdf-3556ffc30f0d",
+      "workspaceId": 442548,
+      "backgroundId": null,
+      "name": "Shared To-do",
+      "itemName": null,
+      "itemNamePlural": null,
+      "description": "",
+      "iconClassNames": null,
+      "iconColor": null,
+      "iconBackgroundColor": null,
+      "isBuilding": false,
+      "isMigrating": false,
+      "isPublic": false,
+      "sortOrder": 29,
+      "formulaTSortOrder": null,
+      "defaultViewModus": 3,
+      "visibility": 1,
+      "settings": null,
+      "created_at": "2020-04-25T21:46:42.692Z",
+      "updated_at": "2020-04-25T23:32:55.298Z",
+      "deprecated_at": null,
+      "scheduled_for_deletion_at": null,
+      "created_by": 400423,
+      "resourceTags": [
+        {
+          "uuid": "456df236-6434-4a0b-94ce-2b331e08c45f",
+          "tag": "list",
+          "appType": "todos",
+          "isOwner": true,
+          "created_by": 400423
+        }
+      ]
+    },
+    {
+      "id": 1347812,
+      "shortId": "AqIriYzgs",
+      "uuid": "3442d33e-3920-4b30-b1f0-ae8ad2a25b6e",
+      "workspaceId": 442548,
+      "backgroundId": null,
+      "name": "Hardware store",
+      "itemName": null,
+      "itemNamePlural": null,
+      "description": "",
+      "iconClassNames": null,
+      "iconColor": null,
+      "iconBackgroundColor": null,
+      "isBuilding": false,
+      "isMigrating": false,
+      "isPublic": false,
+      "sortOrder": 41,
+      "formulaTSortOrder": null,
+      "defaultViewModus": 3,
+      "visibility": 1,
+      "settings": null,
+      "created_at": "2020-05-04T14:30:36.820Z",
+      "updated_at": "2020-07-19T16:25:01.336Z",
+      "deprecated_at": null,
+      "scheduled_for_deletion_at": null,
+      "created_by": 400423,
+      "resourceTags": [
+        {
+          "uuid": "5dbeb12d-7a5f-4001-92d6-1f7fef8c4eb1",
+          "tag": "list",
+          "appType": "todos",
+          "isOwner": true,
+          "created_by": 400423
+        }
+      ]
+    }
+  ]
 })
