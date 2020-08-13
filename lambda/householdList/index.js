@@ -49,6 +49,7 @@ const HouseholdListEventHandler = {
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
+        handlerInput.context.succeed('context success');
       };
     } catch (error) {
       console.error('Failed to handle Alexa list items event:');
@@ -102,7 +103,8 @@ const SkillEventHandler = {
           await events.createSchedule(
             handlerInput.context.invokedFunctionArn, Alexa.getUserId(handlerInput.requestEnvelope));
           console.info('Event schedule has been created.');
-      };
+        };
+        handlerInput.context.succeed('context success');
       } else {
         // Delete user attributes to database
         await handlerInput.attributesManager.deletePersistentAttributes();
@@ -128,7 +130,7 @@ const SkillMessagingHandler = {
       attributes.hold = true;
       handlerInput.attributesManager.setPersistentAttributes(attributes);
       await handlerInput.attributesManager.savePersistentAttributes();
-      // get access token. if accessToken is missing, inform the customer throught their ToDo list.
+      // get access token. if accessToken is missing, stop.
       var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
       if (accessToken == undefined){
         await handlerInput.attributesManager.deletePersistentAttributes();
@@ -151,15 +153,17 @@ const SkillMessagingHandler = {
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
-        handlerInput.context.succeed('context success')
+        handlerInput.context.succeed('context success');
       }
     } catch (error) {
       console.error('Failed to handle skill messaging event:');
       console.log(error);
-      const attributes = await handlerInput.attributesManager.getPersistentAttributes();
-      attributes.hold = false;
-      handlerInput.attributesManager.setPersistentAttributes(attributes);
-      await handlerInput.attributesManager.savePersistentAttributes();
+      if (!error.includes('Missing token on time-based sync - deleted persistent attributes')) {
+        const attributes = await handlerInput.attributesManager.getPersistentAttributes();
+        attributes.hold = false;
+        handlerInput.attributesManager.setPersistentAttributes(attributes);
+        await handlerInput.attributesManager.savePersistentAttributes();
+      }
     }
   }
 }
