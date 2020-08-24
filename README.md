@@ -7,7 +7,7 @@ Unofficial Zenkit Alexa Shopping List Sync Skill
 SeriesOfUnlikelyExplanations/zenkit-alexa
 ## Disclaimer
 
-**The is an unofficial skill meaning it should only be used for personal usage. I do not have any affiliations with Zenkit or Amazon.**
+**The is an unofficial skill meaning it should only be used for personal usage. This project does not have any affiliations with Zenkit or Amazon.**
 
 ## Introduction
 
