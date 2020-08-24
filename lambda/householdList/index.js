@@ -49,12 +49,12 @@ const HouseholdListEventHandler = {
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
-        handlerInput.context.succeed('context success');
       };
     } catch (error) {
       console.error('Failed to handle Alexa list items event:');
       console.log(error);
     }
+    handlerInput.context.succeed('context success');
   }
 };
 
@@ -104,7 +104,6 @@ const SkillEventHandler = {
             handlerInput.context.invokedFunctionArn, Alexa.getUserId(handlerInput.requestEnvelope));
           console.info('Event schedule has been created.');
         };
-        handlerInput.context.succeed('context success');
       } else {
         // Delete user attributes to database
         await handlerInput.attributesManager.deletePersistentAttributes();
@@ -115,6 +114,7 @@ const SkillEventHandler = {
       console.error('Failed to handle skill permission event:');
       console.log(error);
     }
+    handlerInput.context.succeed('context success');
   }
 };
 
@@ -153,7 +153,6 @@ const SkillMessagingHandler = {
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
-        handlerInput.context.succeed('context success');
       }
     } catch (error) {
       console.error('Failed to handle skill messaging event:');
@@ -165,6 +164,7 @@ const SkillMessagingHandler = {
         await handlerInput.attributesManager.savePersistentAttributes();
       }
     }
+    handlerInput.context.succeed('context success');
   }
 }
 
