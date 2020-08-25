@@ -1,6 +1,6 @@
 # alexa-zenkit-sync
 
-Unofficial Zenkit Alexa Shopping List Sync Skill
+Unofficial Zenkit Alexa List Sync Skill
 [![Actions Status](https://github.com/SeriesOfUnlikelyExplanations/zenkit-alexa/workflows/Deploy/badge.svg)](https://github.com/SeriesOfUnlikelyExplanations/zenkit-alexa/actions) [![codecov](https://codecov.io/gh/SeriesOfUnlikelyExplanations/zenkit-alexa/branch/master/graph/badge.svg)](https://codecov.io/gh/SeriesOfUnlikelyExplanations/zenkit-alexa)
 
 

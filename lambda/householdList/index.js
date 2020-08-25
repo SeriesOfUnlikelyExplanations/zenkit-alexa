@@ -192,7 +192,7 @@ const persistenceAdapter = new DynamoDbPersistenceAdapter({
   partitionKeyName: 'userId'
 });
 
-const scheduledEventHandler = async (event) => {
+const scheduledEventHandler = async (event, context) => {
   console.log('Event received:', JSON.stringify(event));
   // Send skill message if relevant event type
   if (event.type === 'skillMessaging') {
@@ -217,6 +217,7 @@ const scheduledEventHandler = async (event) => {
       );
     }
     await Promise.all(promises);
+    context.succeed('context success')
   }
 };
 

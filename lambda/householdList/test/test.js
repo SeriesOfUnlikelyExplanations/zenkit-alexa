@@ -5,6 +5,7 @@ var sinon = require('sinon');
 const context = require('aws-lambda-mock-context');
 var index = require('../index');
 const { DynamoDbPersistenceAdapter } = require('ask-sdk-dynamodb-persistence-adapter');
+var AWS = require('aws-sdk');
 
 const req = require('./requestsTestData.js');
 const alexa = require('./alexaTestData.js');
@@ -72,6 +73,10 @@ describe("Testing the skill", function() {
       .post('/api/v1/lists/1347812/entries')
       .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
 
+    nock.emitter.on("no match", (req) => {
+      assert(false, 'application failure:'.concat(req))
+    })
+
     sinon.stub(DynamoDbPersistenceAdapter.prototype, 'saveAttributes').returns(true);
     sinon.stub(DynamoDbPersistenceAdapter.prototype, 'getAttributes')
       .withArgs(sinon.match( (args) => {
@@ -90,6 +95,7 @@ describe("Testing the skill", function() {
         };
       }))
       .returns(req.GET_ATRTIBUTES_FOR_CREATE_ITEM);
+    sinon.stub(DynamoDbPersistenceAdapter.prototype, 'deleteAttributes').returns(true);
   });
 
   describe("test zenkit --> alexa", () => {
@@ -121,13 +127,60 @@ describe("Testing the skill", function() {
           "updatedTime": 'Wed Sep 27 10:46:30 UTC 2017'
         });
 
-      index.handler(req.TIME_SYNC, ctx, (err, data) => { })
+      index.handler(req.SYNC_MESSAGE_RECEIVED, ctx, (err, data) => { })
       ctx.Promise
         .then(() => {
           console.log('created new item - Success!');
           done();
         })
         .catch(err => {
+          assert(false, 'application failure:'.concat(err))
+          done(err);
+        });
+    });
+    it('Try to trigger Zenkit --> Alexa sync', (done) => {
+      var ctx = context();
+      sinon.stub(AWS.DynamoDB.DocumentClient.prototype, 'scan')
+        .returns({promise: function () {
+          return Promise.resolve({Items:[
+            {userId:'amzn1.ask.account.one'},
+            {userId:'amzn1.ask.account.two'}
+          ]});
+        }})
+
+      nock('https://api.amazon.com')
+        .post('/auth/O2/token', (body) => {
+            console.log('Retrieving token');
+            expect(body.grant_type).to.equal('client_credentials');
+            expect(body.scope).to.equal('alexa:skill_messaging');
+            return body
+          }
+        )
+        .times(2)
+        .reply(200, {access_token:'test_access_token'})
+
+       nock('https://api.amazonalexa.com')
+        .post('/v1/skillmessages/users/amzn1.ask.account.one', (body) => {
+          console.log('Creating sync message for amzn1.ask.account.one');
+          expect(body.data.event).to.equal('updateAlexaList');
+          return body
+        })
+        .reply(200)
+        .post('/v1/skillmessages/users/amzn1.ask.account.two', (body) => {
+          console.log('Creating sync message for amzn1.ask.account.two');
+          expect(body.data.event).to.equal('updateAlexaList');
+          return body
+        })
+        .reply(200)
+
+      index.handler(req.SEND_SYNC_MESSAGE, ctx, (err, data) => { })
+      ctx.Promise
+        .then(() => {
+          console.log('created new item - Success!');
+          done();
+        })
+        .catch(err => {
+          assert(false, 'application failure:'.concat(err))
           done(err);
         });
     });
@@ -156,6 +209,7 @@ describe("Testing the skill", function() {
           done();
         })
         .catch(err => {
+          assert(false, 'application failure:'.concat(err))
           done(err);
         });
     });
@@ -167,7 +221,6 @@ describe("Testing the skill", function() {
           console.log('sync reminder created in Alexa');
           expect(body.value).to.equal('Zenkit Alexa Sync is not setup correctly! Go to https://www.amazon.com/dp/B087C8XQ3T and click on "Link Account"');
           expect(body.status).to.equal('active');
-
           return body
         })
         .reply(200, { "id": 'todo_list_list_id_missing',
@@ -184,6 +237,7 @@ describe("Testing the skill", function() {
           done();
         })
         .catch(err => {
+          assert(false, 'application failure:'.concat(err))
           done(err);
         });
     });
@@ -225,6 +279,7 @@ describe("Testing the skill", function() {
           done();
         })
         .catch(err => {
+          assert(false, 'application failure:'.concat(err))
           done();
         });
     });

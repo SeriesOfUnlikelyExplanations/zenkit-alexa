@@ -36,7 +36,7 @@ module.exports = Object.freeze({
       }
     }
   },
-  TIME_SYNC: {
+  SYNC_MESSAGE_RECEIVED: {
     "version": "1.0",
     "context": {
       "System": {
@@ -61,6 +61,13 @@ module.exports = Object.freeze({
       "message": {
         "event": "updateAlexaList"
       }
+    }
+  },
+  SEND_SYNC_MESSAGE: {
+    "source": "aws.events",
+    "type": "skillMessaging",
+    "message": {
+      "event": "updateAlexaList"
     }
   },
   GET_ATRTIBUTES_FOR_CREATE_ITEM : {
