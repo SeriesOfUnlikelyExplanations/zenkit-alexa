@@ -2,6 +2,7 @@
 
 const ZenKitClient = require('./api/zenKit.js');
 const config = require('./config.js');
+const { backOff } =  require('exponential-backoff');
 
 /**
  * Defines sync list client class
@@ -52,13 +53,13 @@ class SyncListClient {
    */
   async getAlexaLists() {
     // Get all lists
-    const { lists } = await this.householdListManager.getListsMetadata();
+    const { lists } = await backOff(() => this.householdListManager.getListsMetadata());
     var res = {};
     for (const list of lists) {
       if (list.state === 'active') {
         const [active, completed] = await Promise.all([
-          this.householdListManager.getList(list.listId, 'active'),
-          this.householdListManager.getList(list.listId, 'completed')
+          backOff(() => this.householdListManager.getList(list.listId, 'active')),
+          backOff(() => this.householdListManager.getList(list.listId, 'completed'))
         ]);
         res[list.name] = {listId: list.listId,
           listName: list.name,
@@ -141,17 +142,17 @@ class SyncListClient {
         if (typeof alexaItem !== 'undefined') {
           // Set alexa item to be updated if crossed off status not synced, otherwise leave untouched
           promises.push(zenkitItemStatus === alexaItem.status ? getItemProperties(alexaItem, zenkitItem) :
-            this.householdListManager.updateListItem(alexaList.listId, alexaItem.id, {
+            backOff(() => this.householdListManager.updateListItem(alexaList.listId, alexaItem.id, {
               value: alexaItem.value.substring(0, 256), status: zenkitItemStatus, version: alexaItem.version}
-            ).then((item) => getItemProperties(item, zenkitItem))
+            )).then((item) => getItemProperties(item, zenkitItem))
           );
           alreadySyncedItems.push(alexaItem.id);
         } else {
           // Set alexa item to be created
           promises.push(
-            this.householdListManager.createListItem(alexaList.listId, {
+            backOff(() => this.householdListManager.createListItem(alexaList.listId, {
               value: zenkitItem.displayString.toLowerCase().substring(0, 256), status: zenkitItemStatus}
-            ).then((item) => getItemProperties(item, zenkitItem))
+            )).then((item) => getItemProperties(item, zenkitItem))
           );
         }
       });
@@ -179,7 +180,7 @@ class SyncListClient {
               && !alreadySyncedItems.includes(alexaItem.id));
           if (typeof zenkitItem === 'undefined') {
             promises.push(
-              this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id)
+              backOff(() => this.householdListManager.deleteListItem(alexaList.listId, alexaItem.id))
             );
           }
           alreadySyncedItems.push(alexaItem.id);
@@ -214,7 +215,7 @@ class SyncListClient {
   async updateZenkitList(request) {
     var syncedList = this.syncedLists.find((syncedList) => syncedList.alexaId === request.listId);
     if (!(syncedList)) {
-      const list = await this.householdListManager.getList(request.listId, 'active');
+      const list = await backOff(() => this.householdListManager.getList(request.listId, 'active'));
       console.log('Creating new list: ' + list.name);
       const zenkitList = await this.zenKitClient.createList(list.name, this.syncedLists[0].workspaceId);
       const element = JSON.parse(await this.zenKitClient.getElements(zenkitList.shortId));
@@ -246,7 +247,7 @@ class SyncListClient {
     // Get alexa items data based on request item ids if not delete request, otherwise use id only
     const alexaItems = await Promise.all(
       request.listItemIds.map(itemId => request.type === 'ItemsDeleted' ? {id: itemId} :
-        this.householdListManager.getListItem(request.listId, itemId)));
+        backOff(() => this.householdListManager.getListItem(request.listId, itemId))));
     alexaItems.forEach((alexaItem) => {
       if (request.type === 'ItemsCreated') {
         // Determine synced item with alexa item value
@@ -304,8 +305,8 @@ class SyncListClient {
         } else {
           // Set alexa updated item to be deleted
           promises.push(
-            this.householdListManager.deleteListItem(
-              syncedList.alexaId, alexaItem.id));
+            backOff(() => this.householdListManager.deleteListItem(
+              syncedList.alexaId, alexaItem.id)));
         }
       } else if (request.type === 'ItemsDeleted') {
         // Determine synced item index with alexa item id
@@ -336,17 +337,17 @@ class SyncListClient {
   async createSyncToDo() {
     const listEntryName = 'Zenkit Alexa Sync is not setup correctly! Go to https://www.amazon.com/dp/B087C8XQ3T and click on "Link Account"'
     // Get all lists
-    const { lists } = await this.householdListManager.getListsMetadata();
+    const { lists } = await backOff(() => this.householdListManager.getListsMetadata());
     const listId = lists.find(item => item.name === 'Alexa to-do list')
         .listId;
-    const listItems = await this.householdListManager.getList(listId, 'active');
+    const listItems = await backOff(() => this.householdListManager.getList(listId, 'active'));
     if (listItems.items.find(item => item.value === listEntryName)) {
       return 'Sync item already present'
     } else {
-      return this.householdListManager.createListItem(
+      return backOff(() => this.householdListManager.createListItem(
         listId, {
         value: listEntryName , status: 'active'}
-      );
+      ));
     };
   }
 }
