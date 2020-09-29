@@ -25,7 +25,7 @@ const HouseholdListEventHandler = {
         if (accessToken == undefined){
           const client = new SyncListClient(
             handlerInput.serviceClientFactory.getListManagementServiceClient());
-          await client.createSyncToDo();
+          await client.createSyncToDo('Zenkit Alexa Sync is not setup correctly! Go to https://www.amazon.com/dp/B087C8XQ3T and click on "Link Account"');
           throw 'Missing token. To-do list item created to remind customer to link accounts: ' + JSON.stringify(handlerInput);
         }
         // Define request object
@@ -157,6 +157,9 @@ const SkillMessagingHandler = {
     } catch (error) {
       console.error('Failed to handle skill messaging event:');
       console.log(error);
+      if (error.includes('todo workspace is not present')) {
+        await client.createSyncToDo("Zenkit Alexa Sync is not setup correctly! It's possible you have a zenkit base account(base.zenkit.com) but not a to-do workspace. Go to https://todo.zenkit.com and signup!");
+      }
       if (!error.includes('Missing token on time-based sync - deleted persistent attributes')) {
         const attributes = await handlerInput.attributesManager.getPersistentAttributes();
         attributes.hold = false;
@@ -166,6 +169,7 @@ const SkillMessagingHandler = {
     }
     handlerInput.context.succeed('context success');
   }
+
 }
 
 const ErrorHandler = {

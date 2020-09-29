@@ -333,14 +333,13 @@ class SyncListClient {
   }
 
   /**
-   * Create to-do list item letting the customer know that the account sync failed
+   * Create Zenkit to-do list item letting the customer know that the account sync failed
    * @return {Promise}
    */
-  async createSyncToDo() {
-    const listEntryName = 'Zenkit Alexa Sync is not setup correctly! Go to https://www.amazon.com/dp/B087C8XQ3T and click on "Link Account"'
+  async createSyncToDo(listEntryName = "Zenkit Alexa Sync is not setup correctly!") {
     // Get all lists
     const { lists } = await backOff(() => this.householdListManager.getListsMetadata());
-    const listId = lists.find(item => item.name === 'Alexa to-do list')
+    const listId = lists.find(item => item.name === config.ALEXA_TODO_LIST)
         .listId;
     const listItems = await backOff(() => this.householdListManager.getList(listId, 'active'));
     if (listItems.items.find(item => item.value === listEntryName)) {
