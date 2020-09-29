@@ -30,7 +30,8 @@ class ZenKitClient {
         var item = JSON.parse(body).find(item =>
           item.resourceTags.some(resourceTag  => resourceTag.appType === 'todos' && resourceTag.tag === 'defaultFolder'));
         if (typeof item === 'undefined') {
-          throw 'todo workspace is not present'
+          item = JSON.parse(body)[0];
+          //~ throw 'todo workspace is not present'
         }
         return item
       });
