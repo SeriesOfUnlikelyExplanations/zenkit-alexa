@@ -16,35 +16,37 @@ class SyncListClient {
   }
 
   /**
-   * Get mapped key
+   * Take a zenkit list name and map it to the right Alexa list name
    * @return {Promise}
    */
-  mapAlexaToZenkitLists(listName, zlists, reverse = false) {
-    if (reverse) {
-      // Take a zenkit list name and map it to the right Alexa list name
-      if (listName === config.ZENKIT_SHOPPING_LIST) {
-        return config.ALEXA_SHOPPING_LIST;
-      } else if (listName.toLowerCase().includes(config.ZENKIT_TODO_LIST)) {
-        return config.ALEXA_TODO_LIST
-      } else if (listName === config.ZENKIT_INBOX_LIST) {
-        for (var k in zlists) {
-          if (k.toLowerCase().includes(config.ZENKIT_TODO_LIST)) { return ''; }
-        }
-        return config.ALEXA_TODO_LIST
-      } else {
-        return listName
+  mapZenkitToAlexaLists(listName, zlists) {
+    if (listName === config.ZENKIT_SHOPPING_LIST) {
+      return config.ALEXA_SHOPPING_LIST;
+    } else if (listName.toLowerCase().includes(config.ZENKIT_TODO_LIST)) {
+      return config.ALEXA_TODO_LIST
+    } else if (listName === config.ZENKIT_INBOX_LIST) {
+      for (var k in zlists) {
+        if (k.toLowerCase().includes(config.ZENKIT_TODO_LIST)) { return ''; }
       }
+      return config.ALEXA_TODO_LIST
     } else {
-      if (listName === config.ALEXA_SHOPPING_LIST) {
-        return config.ZENKIT_SHOPPING_LIST;
-      } else if (listName === config.ALEXA_TODO_LIST) {
-        for (var k in zlists) {
-          if (k.toLowerCase().includes(config.ZENKIT_TODO_LIST)) { return k; }
-        }
-        return config.ZENKIT_INBOX_LIST
-      } else {
-        return listName
+      return listName
+    }
+  }
+  /**
+  * Take a Alexa list name and map it to the right Zenkit list name
+  * @return {Promise}
+  */
+  mapAlexaToZenkitLists(listName, zlists) {
+    if (listName === config.ALEXA_SHOPPING_LIST) {
+      return config.ZENKIT_SHOPPING_LIST;
+    } else if (listName === config.ALEXA_TODO_LIST) {
+      for (var k in zlists) {
+        if (k.toLowerCase().includes(config.ZENKIT_TODO_LIST)) { return k; }
       }
+      return config.ZENKIT_INBOX_LIST
+    } else {
+      return listName
     }
   }
   /**
@@ -126,7 +128,7 @@ class SyncListClient {
     });
     for (const [zenkitListName, zenkitList] of Object.entries(zenkitLists)) {
       const promises = [];
-      const alexaListName = this.mapAlexaToZenkitLists(zenkitListName, zenkitLists, true);
+      const alexaListName = this.mapZenkitToAlexaLists(zenkitListName, zenkitLists);
       if (!(alexaListName)) { continue; }
       const alexaList = alexaLists[alexaListName];
       if (!(alexaList)) { continue; }

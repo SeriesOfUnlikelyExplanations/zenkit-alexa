@@ -73,8 +73,19 @@ describe("Testing the skill", function() {
       .post('/api/v1/lists/1347812/entries')
       .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY);
 
+    nock('https://events.us-east-1.amazonaws.com')
+      .persist()
+      .filteringPath(function(path){
+        return '/';
+      })
+      .post("/")
+      .reply(200, {'Rules': [
+        {'Arn': 'AlexaSyncSchedule' }
+       ]})
+
     nock.emitter.on("no match", (req) => {
-      assert(false, 'application failure:'.concat(req))
+      console.log(req)
+      assert(false, 'application failure: no match')
     })
 
     sinon.stub(DynamoDbPersistenceAdapter.prototype, 'saveAttributes').returns(true);

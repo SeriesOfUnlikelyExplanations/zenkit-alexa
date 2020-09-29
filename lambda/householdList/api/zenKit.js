@@ -28,9 +28,10 @@ class ZenKitClient {
     return this.handleRequest('users/me/workspacesWithLists')
       .then((body) => {
         var item = JSON.parse(body).find(item =>
-          item.resourceTags.some(e => e.appType === 'todos' && e.tag === 'defaultFolder'));
+          item.resourceTags.some(resourceTag  => resourceTag.appType === 'todos' && resourceTag.tag === 'defaultFolder'));
         if (typeof item === 'undefined') {
-          item = JSON.parse(body)[0];
+          throw 'todo workspace is not present'
+          //~ item = JSON.parse(body)[0];
         }
         return item
       });
@@ -44,11 +45,12 @@ class ZenKitClient {
     return this.getWorkspace()
       .then((body) => {
         var res = {};
-        body.lists.forEach(item =>
-          res[item.name] = {
-            id: item.id,
-            shortId: item.shortId,
-            workspaceId: item.workspaceId
+        body.lists.forEach(list =>
+          res[list.name] = {
+            id: list.id,
+            shortId: list.shortId,
+            workspaceId: list.workspaceId,
+            inbox: list.resourceTags.some(resourceTag => resourceTag.appType === 'todos' && resourceTag.tag === 'inbox')
           }
         );
         return res
