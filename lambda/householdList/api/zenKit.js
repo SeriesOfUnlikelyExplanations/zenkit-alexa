@@ -33,6 +33,7 @@ class ZenKitClient {
           item = JSON.parse(body)[0];
           //~ throw 'todo workspace is not present'
         }
+        console.log(JSON.parse(body));
         return item
       });
   }
@@ -203,9 +204,6 @@ class ZenKitClient {
     }
     console.log(options);
     const response = request(options);
-    if (scope == 'users/me/workspacesWithLists') {
-      console.log(response)
-    }
     return response;
   }
 }
