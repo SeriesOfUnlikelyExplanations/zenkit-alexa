@@ -27,6 +27,8 @@ class ZenKitClient {
   getWorkspace() {
     return this.handleRequest('users/me/workspacesWithLists')
       .then((body) => {
+        // find workspace based on 1) finding the customer's default todo workspace and 2) confirming that an inbox exists in that workspace (which likely means it's not a shared workspace.
+        // Another way to do this would be to look at the createdby field and compare against the customer's user id. That would involve another api call to get user details...
         var workspace = JSON.parse(body).find(workspace =>
           workspace.resourceTags.some(resourceTag  => resourceTag.appType === 'todos' && resourceTag.tag === 'defaultFolder')
           && workspace.lists.some(list => list.resourceTags.some(resourceTag => resourceTag.appType === 'todos' && resourceTag.tag === 'inbox'))
