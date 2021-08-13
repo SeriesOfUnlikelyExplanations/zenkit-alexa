@@ -43,7 +43,7 @@ jobs:
       - name: Deploy
         run: |
           chmod +x ./hooks/pre_deploy_hook.sh
-          ask deploy --debug
+          ask deploy --debug --force
 
       - uses: codecov/codecov-action@v1
         with:

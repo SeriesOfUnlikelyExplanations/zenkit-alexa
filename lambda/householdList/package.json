@@ -10,7 +10,8 @@
     "setit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /test_skill.json",
     "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /skill.json",
     "submitit": "ask api submit -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1",
-    "withdrawit": "ask api withdraw -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1"
+    "withdrawit": "ask api withdraw -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1",
+    "ask": "ask"
   },
   "author": "Tom Woodard",
   "license": "MIT",
@@ -35,8 +36,8 @@
     "request-promise-native": "^1.0.8"
   },
   "devDependencies": {
-    "aws-lambda-mock-context": "^3.2.1",
     "ask-sdk-dynamodb-persistence-adapter": "^2.7.0",
+    "aws-lambda-mock-context": "^3.2.1",
     "aws-sdk-mock": "^5.1.0",
     "chai": "^4.2.0",
     "mocha": "^7.2.0",
