@@ -77,18 +77,18 @@ class SyncListClient {
    */
   zenkitListMetadata(zlist) {
     const element =  this.zenKitClient.getElements(zlist.shortId).then(item => JSON.parse(item));
-    zlist.titleUuid = element.then(item => item.find(list => list.name ===  'Title').uuid);
-    zlist.uncompleteId = element.then(item => item.find(list => list.name ===  'Stage')
+    zlist.titleUuid = element.then(item => item.find(list => ['Title'].includes(list.name)).uuid);
+    zlist.uncompleteId = element.then(item => item.find(list => ['Stage','Etapa'].includes(list.name))
       .elementData
       .predefinedCategories
-      .find(list => list.name ===  'To-Do')
+      .find(list => ['To-Do','A fazer'].includes(list.name))
       .id);
-    zlist.completeId = element.then(item => item.find(list => list.name ===  'Stage')
+    zlist.completeId = element.then(item => item.find(list => ['Stage','Etapa'].includes(list.name))
       .elementData
       .predefinedCategories
-      .find(list => list.name ===  'Done')
+      .find(list => ['Done','Feito'].includes(list.name))
       .id);
-    zlist.stageUuid = element.then(item => item.find(list => list.name ===  'Stage').uuid);
+    zlist.stageUuid = element.then(item => item.find(list => ['Stage','Etapa'].includes(list.name)).uuid);
     return zlist;
   }
 
