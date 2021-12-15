@@ -35,7 +35,7 @@ class ZenKitClient {
         )
         if (typeof workspace === 'undefined') {
           workspace = JSON.parse(body)[0];
-          //~ throw 'todo workspace is not present'
+          throw 'todo workspace is not present'
         }
         return workspace
       });
