@@ -77,6 +77,7 @@ class SyncListClient {
    */
   zenkitListMetadata(zlist) {
     const element =  this.zenKitClient.getElements(zlist.shortId).then(item => JSON.parse(item));
+    console.log(element);
     zlist.titleUuid = element.then(item => item.find(list => list.name ===  'Title').uuid);
     if ('elementData' in element.then(item => item.find(list => list.name ===  'Stage'))) {
       zlist.uncompleteId = element.then(item => item.find(list => list.name ===  'Stage')
