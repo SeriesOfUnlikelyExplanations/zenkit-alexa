@@ -77,23 +77,17 @@ class SyncListClient {
    */
   zenkitListMetadata(zlist) {
     const element =  this.zenKitClient.getElements(zlist.shortId).then(item => JSON.parse(item));
-    console.log(element);
     zlist.titleUuid = element.then(item => item.find(list => list.name ===  'Title').uuid);
-    if ('elementData' in element.then(item => item.find(list => list.name ===  'Stage'))) {
-      zlist.uncompleteId = element.then(item => item.find(list => list.name ===  'Stage')
-        .elementData
-        .predefinedCategories
-        .find(list => list.name ===  'To-Do')
-        .id);
-      zlist.completeId = element.then(item => item.find(list => list.name ===  'Stage')
-        .elementData
-        .predefinedCategories
-        .find(list => list.name ===  'Done')
-        .id);
-    } else {
-      zlist.uncompleteId = '';
-      zlist.completeId = '';
-    }
+    zlist.uncompleteId = element.then(item => item.find(list => list.name ===  'Stage')
+      .elementData
+      .predefinedCategories
+      .find(list => list.name ===  'To-Do')
+      .id);
+    zlist.completeId = element.then(item => item.find(list => list.name ===  'Stage')
+      .elementData
+      .predefinedCategories
+      .find(list => list.name ===  'Done')
+      .id);
     zlist.stageUuid = element.then(item => item.find(list => list.name ===  'Stage').uuid);
     return zlist;
   }
@@ -195,21 +189,29 @@ class SyncListClient {
         });
       }
       // put all the synced items into the synced lists
-      const syncedItems = await Promise.all(promises);
-      const syncedList = {
-        alexaId: alexaList.listId,
-        alexaListName: alexaListName,
-        zenkitListName: zenkitListName,
-        items: syncedItems.filter(Boolean),
-        listId: zenkitList.id,
-        shortListId: zenkitList.shortId,
-        titleUuid: await zenkitList.titleUuid,
-        uncompleteId: await zenkitList.uncompleteId,
-        completeId: await zenkitList.completeId,
-        stageUuid: await zenkitList.stageUuid,
-        workspaceId: zenkitList.workspaceId
-      };
-      this.syncedLists.push(syncedList);
+      try {
+        const syncedItems = await Promise.all(promises);
+        const syncedList = {
+          alexaId: alexaList.listId,
+          alexaListName: alexaListName,
+          zenkitListName: zenkitListName,
+          items: syncedItems.filter(Boolean),
+          listId: zenkitList.id,
+          shortListId: zenkitList.shortId,
+          titleUuid: await zenkitList.titleUuid,
+          uncompleteId: await zenkitList.uncompleteId,
+          completeId: await zenkitList.completeId,
+          stageUuid: await zenkitList.stageUuid,
+          workspaceId: zenkitList.workspaceId
+        };
+        this.syncedLists.push(syncedList);
+      } catch (e) {
+        console.log('Syncing list failed')
+        console.log(e)
+        console.log('Zenkit List ID: '+zenkitList.id)
+        console.log('Alexa List ID: '+alexaList.listId)
+        continue
+      } 
     }
     //Return synced items promise result
     return this.syncedLists
