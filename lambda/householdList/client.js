@@ -77,6 +77,7 @@ class SyncListClient {
    */
   zenkitListMetadata(zlist) {
     const element =  this.zenKitClient.getElements(zlist.shortId).then(item => JSON.parse(item));
+    element.then(item => console.log(item));
     zlist.titleUuid = element.then(item => item.find(list => list.name ===  'Title').uuid);
     zlist.uncompleteId = element.then(item => item.find(list => list.name ===  'Stage')
       .elementData
@@ -189,29 +190,21 @@ class SyncListClient {
         });
       }
       // put all the synced items into the synced lists
-      try {
-        const syncedItems = await Promise.all(promises);
-        const syncedList = {
-          alexaId: alexaList.listId,
-          alexaListName: alexaListName,
-          zenkitListName: zenkitListName,
-          items: syncedItems.filter(Boolean),
-          listId: zenkitList.id,
-          shortListId: zenkitList.shortId,
-          titleUuid: await zenkitList.titleUuid,
-          uncompleteId: await zenkitList.uncompleteId,
-          completeId: await zenkitList.completeId,
-          stageUuid: await zenkitList.stageUuid,
-          workspaceId: zenkitList.workspaceId
-        };
-        this.syncedLists.push(syncedList);
-      } catch (e) {
-        console.log('Syncing list failed')
-        console.log(e)
-        console.log('Zenkit List ID: '+zenkitList.id)
-        console.log('Alexa List ID: '+alexaList.listId)
-        continue
-      } 
+      const syncedItems = await Promise.all(promises);
+      const syncedList = {
+        alexaId: alexaList.listId,
+        alexaListName: alexaListName,
+        zenkitListName: zenkitListName,
+        items: syncedItems.filter(Boolean),
+        listId: zenkitList.id,
+        shortListId: zenkitList.shortId,
+        titleUuid: await zenkitList.titleUuid,
+        uncompleteId: await zenkitList.uncompleteId,
+        completeId: await zenkitList.completeId,
+        stageUuid: await zenkitList.stageUuid,
+        workspaceId: zenkitList.workspaceId
+      };
+      this.syncedLists.push(syncedList);
     }
     //Return synced items promise result
     return this.syncedLists
