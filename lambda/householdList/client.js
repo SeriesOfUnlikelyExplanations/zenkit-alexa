@@ -77,18 +77,18 @@ class SyncListClient {
    */
   zenkitListMetadata(zlist) {
     const element =  this.zenKitClient.getElements(zlist.shortId).then(item => JSON.parse(item));
-    zlist.titleUuid = element.then(item => item.find(list => ['Title'].includes(list.name)).uuid);
-    zlist.uncompleteId = element.then(item => item.find(list => ['Stage','Etapa'].includes(list.name))
+    zlist.titleUuid = element.then(element => element.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'title')).uuid);
+    zlist.uncompleteId = element.then(element => element.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
       .elementData
       .predefinedCategories
-      .find(list => ['To-Do','A fazer'].includes(list.name))
+      .find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'todo'))
       .id);
-    zlist.completeId = element.then(item => item.find(list => ['Stage','Etapa'].includes(list.name))
+    zlist.completeId = element.then(element => element.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
       .elementData
       .predefinedCategories
-      .find(list => ['Done','Feito'].includes(list.name))
+      .find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'todo'))
       .id);
-    zlist.stageUuid = element.then(item => item.find(list => ['Stage','Etapa'].includes(list.name)).uuid);
+    zlist.stageUuid = element.then(element => element.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage')).uuid);
     return zlist;
   }
 
