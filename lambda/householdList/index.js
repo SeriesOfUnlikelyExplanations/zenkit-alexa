@@ -214,11 +214,12 @@ const scheduledEventHandler = async (event, context) => {
                 console.log('Deleted User ID: ' + userId);
               });
           } else {
-            console.error('Failed to handle scheduled event:',);
+            console.error('Failed to handle scheduled event:');
             console.log(error);
           };
         })
       );
+      // add wait here based on feedback from Jesse
     }
     await Promise.all(promises);
     context.succeed('context success')
