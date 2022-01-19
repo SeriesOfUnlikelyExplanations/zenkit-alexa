@@ -1,90 +1,96 @@
-'use strict';
-
-const { v4: uuidv4 } = require('uuid');
-const request = require('request-promise-native').defaults({
-  jar: true
-});
+const https = require('https');
+const querystring = require('querystring');
+const { randomUUID } = require('crypto');
 
 /**
  * Defines ZenKit client class
  */
-class ZenKitClient {
+class ZenkitSDK {
   /**
    * Constructor
    * @param {String} apiUrl
    * @param {String} key
    */
-  constructor(apiUrl, key, keyType = 'Authorization') {
-    this.apiUrl = apiUrl;
+  constructor(key, { keyType = 'Zenkit-API-Key', host = 'todo.zenkit.com', apiScope = 'api/v1' }) {
+    this.host = host; // use this to determine which app we are in. This class is primarily modeled after todo, I'd like to modify to support the base and hypernotes app at some point.
+    this.apiScope = apiScope;
     this.key = key;
-    this.keyType = keyType;
+    this.keyType = keyType; // can be 'Zenkit-API-Key' or 'Authorizaion' for oAuth Clients
   }
 
-  /**
-   * Get workspace
-   * @return {Promise}
-   */
-  getWorkspace() {
-    return this.handleRequest('users/me/workspacesWithLists')
-      .then((body) => {
-        // find workspace based on 1) finding the customer's default todo workspace and 2) confirming that an inbox exists in that workspace (which likely means it's not a shared workspace.
-        // Another way to do this would be to look at the createdby field and compare against the customer's user id. That would involve another api call to get user details...
-        var workspace = JSON.parse(body).find(workspace =>
-          workspace.resourceTags.some(resourceTag  => resourceTag.appType === 'todos' && resourceTag.tag === 'defaultFolder')
-          && workspace.lists.some(list => list.resourceTags.some(resourceTag => resourceTag.appType === 'todos' && resourceTag.tag === 'inbox'))
-        )
-        if (typeof workspace === 'undefined') {
-          workspace = JSON.parse(body)[0];
-          console.log('todo workspace is not present. using workspace: '+workspace)
-        }
-        return workspace
-      });
+  async getWorkspaces() {
+    this.workspaces = await this.handleRequest('users/me/workspacesWithLists');
+    if (this.host === 'todo.zenkit.com') {
+      this.defaultWorkspace = this.workspaces.find(({ resourceTags, lists})  =>
+        resourceTags.some(({ appType, tag })  => appType === 'todos' && tag === 'defaultFolder')
+        && lists.some(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'inbox'))
+      )
+    } else {
+      this.defaultWorkspace = this.workspaces[0];
+    }
+    this.defaultWorkspaceId = this.defaultWorkspace.id
+    return this.workspaces
+  }
+  
+  async setDefaultWorkspaces(workspaceId) {
+    if (!this.workspaces) {
+      await this.getWorkspaces()
+    }
+    this.defaultWorkspace = this.workspaces.find(({ id }) => id === workspaceId);
+    this.defaultWorkspaceId = this.defaultWorkspace.id
   }
 
   /**
    * Get all Lists data
    * @return {Promise}
    */
-  getLists() {
-    return this.getWorkspace()
-      .then((body) => {
-        var res = {};
-        body.lists.forEach(list =>
-          res[list.name] = {
-            id: list.id,
-            shortId: list.shortId,
-            workspaceId: list.workspaceId,
-            inbox: list.resourceTags.some(resourceTag => resourceTag.appType === 'todos' && resourceTag.tag === 'inbox')
-          }
-        );
-        return res
-      });
+  async getListsInWorkspace(workspaceId=null) {
+    if (!this.workspaces) {
+      await this.getWorkspaces()
+    }
+    if (!workspaceId) {
+      workspaceId = this.defaultWorkspaceId
+    }
+    const workspace = this.workspaces.find(({ id }) => id === workspaceId);
+    if (typeof workspace === 'undefined') {
+      return null
+    }
+    this.ListsInWorkspace = {};
+    workspace.lists.forEach(list =>
+      this.ListsInWorkspace[list.id] = {
+        name: list.name,
+        shortId: list.shortId,
+        workspaceId: list.workspaceId,
+        inbox: list.resourceTags.some(resourceTag => resourceTag.appType === 'todos' && resourceTag.tag === 'inbox')
+      }
+    );
+    return this.ListsInWorkspace
   }
-  /**
-   * Get all elements for list
-   * @param {int} shortId
-   * @return {Promise}
+  
+  /** 
+   * Get all metadata about a list and all of it's items
+   * @param {string} listId
+   * @ return {Promise}
    */
-  getElements(shortId) {
-    return this.handleRequest('lists/' + shortId + '/elements');
-  }
-
-  /**
-   * Get all elements for list
-   * @param {int} shortId
-   * @param {string, null} stageUuid
-   * @return {Promise}
-   */
-  getListItems(listId, stageUuid = '') {
-    return this.handleRequest('lists/' + listId + '/entries/filter', 'POST')
-      .then(function(res) {
-        if (stageUuid) {
-          res.forEach((item) => {
-            item.completed = (item[stageUuid + '_categories_sort'].some(e => e.name === 'Done'));
-          });
-        }
-        return res;
-      });
+  
+  async getListDetails(listId) {
+    const [elements, listItems] = await Promise.all([await this.handleRequest('lists/' + listId + '/elements'), this.handleRequest('lists/' + listId + '/entries/filter', 'POST')]);
+    console.log(this.ListsInWorkspace[listId]);
+    this.ListsInWorkspace[listId].titleUuid = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'title')).uuid;
+    this.ListsInWorkspace[listId].uncompleteId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
+      .elementData.predefinedCategories
+      .find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'todo'))
+      .id;
+    this.ListsInWorkspace[listId].completeId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
+      .elementData.predefinedCategories
+      .find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'todo'))
+      .id;
+    this.ListsInWorkspace[listId].stageUuid = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage')).uuid;
+    listItems.forEach((item) => {
+      item.completed = (item[this.ListsInWorkspace[listId].stageUuid  + '_categories_sort'].some(({ name }) => name === 'Done'));
+    });
+    this.ListsInWorkspace[listId].items = listItems;
+    return this.ListsInWorkspace[listId];
   }
 
   /**
@@ -93,16 +99,9 @@ class ZenKitClient {
    * @param {string, null} stageUuid
    * @return {Promise}
    */
-  createList(listName, workspaceId) {
-    const parameters = {
-      'name': listName
-    };
-    return this.handleRequest('workspaces/' + workspaceId + '/lists', 'POST', parameters)
-      .then((item) => {
-        return {id: item.id,
-        shortId: item.shortId,
-        workspaceId: item.workspaceId}
-      })
+  async createList(listName, workspaceId=this.defaultWorkspace.id) {
+    const list = await this.handleRequest('workspaces/' + workspaceId + '/lists', 'POST', {name: listName})
+    return await this.getListDetails(list.id)
   }
 
   /**
@@ -122,15 +121,15 @@ class ZenKitClient {
   * @param  {String}  value
   * @return {Promise}
   */
-  addItem(listId, titleUuid, value) {
+  addItem(listId, value) {
     const scope = 'lists/' + listId + '/entries';
     const parameters = {
-      'uuid': uuidv4(),
+      'uuid': randomUUID(),
       'sortOrder': 'lowest',
       'displayString': value,
-      [titleUuid + '_text']: value,
-      [titleUuid + '_searchText']: value,
-      [titleUuid + '_textType']: 'plain'
+      [this.todoLists[listId].titleUuid + '_text']: value,
+      [this.todoLists[listId].titleUuid + '_searchText']: value,
+      [this.todoLists[listId].titleUuid + '_textType']: 'plain'
     };
     return this.handleRequest(scope, 'POST', parameters);
   }
@@ -159,11 +158,11 @@ class ZenKitClient {
    * @param  {Int}  statusId
    * @return {Promise}
    */
-  updateItemStatus(listId, entryId, stageUuid, statusId ) {
+  updateItemStatus(listId, entryId, statusId ) {
     const scope = 'lists/' + listId + '/entries/' + entryId;
     const parameters = {
       "updateAction": "replace",
-      [stageUuid + "_categories"]: [statusId]
+      [this.todoLists[listId].stageUuid + "_categories"]: [statusId]
     };
     return this.handleRequest(scope, 'PUT', parameters);
   }
@@ -176,39 +175,81 @@ class ZenKitClient {
    * @param  {String} value
    * @return {Promise}
    */
-  updateItemTitle(listId, entryId, titleUuid, value) {
+  updateItemTitle(listId, entryId, value) {
     const scope = 'lists/' + listId + '/entries/' + entryId;
     const parameters = {
       "updateAction": "replace",
-      [titleUuid + '_text']: value
+      [this.todoLists[listId].titleUuid + '_text']: value
     };
     return this.handleRequest(scope, 'PUT', parameters);
   }
 
   /**
-   * Handle request
-   * @param  {string} scope
-   * @param  {string} method
-   * @param  {Object} parameters
-   * @return {Promise}
-   */
-  async handleRequest(scope, method = 'GET', parameters = {}) {
+   //~ * Handle request
+   //~ * @param  {string} scope
+   //~ * @param  {string} method
+   //~ * @param  {Object} parameters
+   //~ * @return {Promise}
+   //~ */
+  async handleRequest(scope, method = 'GET', parameters = {}, queryParameters ={}) {
     // Define request options
-    const options = {
-        method: method,
-        uri: `${this.apiUrl}/${scope}`,
-        headers: {
-          [this.keyType]: this.key //Zenkit-API-Key
-        }
+    //~ queryParameters.ie = (new Date()).getTime();
+    //~ queryParameters.show_archived = false
+    var queryString = '';
+    if (Object.keys(queryParameters).length) {
+      queryString = `?${querystring.stringify(queryParameters)}`
+    } 
+    
+    var options = {
+      hostname: this.host,
+      port: 443,
+      path: `/${this.apiScope}/${scope}${queryString}`,
+      method: method,
+      headers: {
+        'Cache-Control':'no-cache',
+        [this.keyType]: this.key
       }
-    if ( ['PUT','POST'].includes(method)) {
-      options['body'] = parameters;
-      options['json'] = true
+    }
+    var paramString;
+    if (Object.keys(parameters).length) {
+      paramString = JSON.stringify(parameters);
+      options.headers['Content-Type'] = 'application/json';
+      options.headers['Content-Length'] = Buffer.byteLength(paramString)
     }
     console.log(options);
-    const response = request(options);
-    return response;
+    return new Promise(function(resolve, reject) {
+      var req = https.request(options, function(res) {
+        var body = [];
+        res.on('data', function(chunk) {
+          body.push(chunk);
+        });
+        res.on('end', function() {
+          try {
+            body = JSON.parse(Buffer.concat(body).toString());
+          } catch(e) {
+            try {
+              body = Buffer.concat(body).toString();
+            } catch(e) {
+              reject(e);
+            }
+          }
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            console.log(body);
+            return reject(new Error('statusCode=' + res.statusCode));
+          }
+          resolve(body);
+        });
+      });
+      req.on('error', function(e) {
+        reject(e);
+      });
+      if ( ['PUT','POST'].includes(method)) {
+        req.write(paramString);
+      }
+      req.end();
+    });
   }
 }
 
-module.exports = ZenKitClient;
+
+module.exports = ZenkitSDK;

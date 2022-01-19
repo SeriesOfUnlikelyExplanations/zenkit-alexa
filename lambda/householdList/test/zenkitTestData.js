@@ -159,7 +159,7 @@ module.exports = Object.freeze({
         "created_by": 400423
       }]
     }, {
-      "id": 1347812,
+      "id": 1347813,
       "shortId": "AqIriYzgs",
       "uuid": "3442d33e-3920-4b30-b1f0-ae8ad2a25b6e",
       "workspaceId": 442548,
@@ -307,90 +307,6 @@ module.exports = Object.freeze({
       "created_by": 400423
     }]
   }, {
-    "id": 13435086,
-    "shortId": "mq5fAlRPhv",
-    "uuid": "c289bca2-4a3d-461d-a409-d468db7d25d9",
-    "name": "Created",
-    "description": null,
-    "businessData": {},
-    "elementData": {},
-    "isPrimary": false,
-    "sortOrder": 1,
-    "created_at": "2020-04-21T17:09:57.113Z",
-    "updated_at": "2020-04-21T17:09:57.121Z",
-    "deprecated_at": null,
-    "elementcategory": 8,
-    "listId": 1225299,
-    "visibleInPublicList": true,
-    "isAutoCreated": false,
-    "visible": true,
-    "displayName": null,
-    "resourceTags": []
-  }, {
-    "id": 13435087,
-    "shortId": "GjlvIoTNvD",
-    "uuid": "98701e86-ffc2-41a9-90a5-ae46655cee68",
-    "name": "Last Updated",
-    "description": null,
-    "businessData": {},
-    "elementData": {},
-    "isPrimary": false,
-    "sortOrder": 2,
-    "created_at": "2020-04-21T17:09:57.114Z",
-    "updated_at": "2020-04-21T17:09:57.121Z",
-    "deprecated_at": null,
-    "elementcategory": 9,
-    "listId": 1225299,
-    "visibleInPublicList": true,
-    "isAutoCreated": false,
-    "visible": true,
-    "displayName": null,
-    "resourceTags": []
-  }, {
-    "id": 13435088,
-    "shortId": "_tg0aFCA7Z",
-    "uuid": "9e910af0-de22-4701-8c1e-bb579ecbc74a",
-    "name": "Created By",
-    "description": null,
-    "businessData": {},
-    "elementData": {
-      "listUsers": null
-    },
-    "isPrimary": false,
-    "sortOrder": 3,
-    "created_at": "2020-04-21T17:09:57.114Z",
-    "updated_at": "2020-04-21T17:09:57.121Z",
-    "deprecated_at": null,
-    "elementcategory": 11,
-    "listId": 1225299,
-    "visibleInPublicList": true,
-    "isAutoCreated": false,
-    "visible": true,
-    "displayName": null,
-    "resourceTags": []
-  }, {
-    "id": 13435089,
-    "shortId": "hG-obiPiVS",
-    "uuid": "4f9be4f6-2ffa-4d09-8a6d-95b7949fda95",
-    "name": "Last Updated By",
-    "description": null,
-    "businessData": {},
-    "elementData": {
-      "listUsers": null
-    },
-    "isPrimary": false,
-    "sortOrder": 4,
-    "created_at": "2020-04-21T17:09:57.114Z",
-    "updated_at": "2020-04-21T17:09:57.121Z",
-    "deprecated_at": null,
-    "elementcategory": 12,
-    "listId": 1225299,
-    "visibleInPublicList": true,
-    "isAutoCreated": false,
-    "visible": true,
-    "displayName": null,
-    "resourceTags": []
-  }, {
     "id": 13435091,
     "shortId": "o1LcgobqOR",
     "uuid": "e4e56aaa-f1d2-4243-921e-25c87b1060e6",
@@ -532,67 +448,6 @@ module.exports = Object.freeze({
     "resourceTags": [{
       "uuid": "53cdac62-88a9-4105-a166-79d6fb11b0fd",
       "tag": "dueDate",
-      "appType": "todos",
-      "isOwner": true,
-      "created_by": 400423
-    }]
-  }, {
-    "id": 13435094,
-    "shortId": "5bQ_fgFvfj",
-    "uuid": "11937ada-b79a-4741-aa6a-5f96e2b8c546",
-    "name": "Assigned To",
-    "description": null,
-    "businessData": {
-      "persons": [],
-      "persons_sort": []
-    },
-    "elementData": {
-      "multiple": true,
-      "listUsers": null
-    },
-    "isPrimary": false,
-    "sortOrder": 9,
-    "created_at": "2020-04-21T17:09:57.168Z",
-    "updated_at": "2020-04-21T17:09:57.010Z",
-    "deprecated_at": null,
-    "elementcategory": 14,
-    "listId": 1225299,
-    "visibleInPublicList": true,
-    "isAutoCreated": false,
-    "visible": true,
-    "displayName": null,
-    "resourceTags": [{
-      "uuid": "e681efaa-e77d-4ae4-91fb-6511d34c539f",
-      "tag": "assignments",
-      "appType": "todos",
-      "isOwner": true,
-      "created_by": 400423
-    }]
-  }, {
-    "id": 13435095,
-    "shortId": "y_cBZTrKpZc",
-    "uuid": "49810bdf-8874-4f9e-9be4-062b584151d1",
-    "name": "Attachments",
-    "description": null,
-    "businessData": {
-      "files": [],
-      "filesData": []
-    },
-    "elementData": {},
-    "isPrimary": false,
-    "sortOrder": 10,
-    "created_at": "2020-04-21T17:09:57.168Z",
-    "updated_at": "2020-04-21T17:09:57.010Z",
-    "deprecated_at": null,
-    "elementcategory": 15,
-    "listId": 1225299,
-    "visibleInPublicList": true,
-    "isAutoCreated": false,
-    "visible": true,
-    "displayName": null,
-    "resourceTags": [{
-      "uuid": "3e74b54e-48ec-48ce-be41-84f39abd5a79",
-      "tag": "files",
       "appType": "todos",
       "isOwner": true,
       "created_by": 400423
@@ -903,8 +758,7 @@ module.exports = Object.freeze({
         }
       ]
     }
-  ]
-  ,
+  ],
   MULTIPLE_TODO_WORKSPACES: [{
     "id": 502654,
     "shortId": "m1A1j3PkQn",
