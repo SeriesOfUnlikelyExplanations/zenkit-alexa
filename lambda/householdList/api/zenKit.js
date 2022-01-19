@@ -225,7 +225,7 @@ class ZenkitSDK {
       }
     }
     console.log(options);
-    var paramString;
+    var paramString = '';
     if (Object.keys(parameters).length) {
       console.log(parameters);
       paramString = JSON.stringify(parameters);
@@ -259,7 +259,7 @@ class ZenkitSDK {
       req.on('error', function(e) {
         reject(e);
       });
-      if ( ['PUT','POST'].includes(method) && Object.keys(parameters).length) {
+      if (Object.keys(parameters).length) {
         console.log(paramString);
         req.write(paramString);
       }
