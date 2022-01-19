@@ -226,10 +226,9 @@ class ZenkitSDK {
     }
     console.log(options);
     console.log(parameters);
-    var paramString = '';
     if (Object.keys(parameters).length) {
       console.log(parameters);
-      paramString = JSON.stringify(parameters);
+      const paramString = JSON.stringify(parameters);
       options.headers['Content-Type'] = 'application/json';
       options.headers['Content-Length'] = Buffer.byteLength(paramString)
     }
@@ -261,6 +260,7 @@ class ZenkitSDK {
         reject(e);
       });
       if (Object.keys(parameters).length) {
+        const paramString = JSON.stringify(parameters);
         console.log(paramString);
         req.write(paramString);
       }
