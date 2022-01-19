@@ -259,7 +259,7 @@ class ZenkitSDK {
       req.on('error', function(e) {
         reject(e);
       });
-      if ( ['PUT','POST'].includes(method)) {
+      if ( ['PUT','POST'].includes(method) && Object.keys(parameters).length) {
         req.write(paramString);
       }
       req.end();
