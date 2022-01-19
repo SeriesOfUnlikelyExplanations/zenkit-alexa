@@ -4,8 +4,8 @@
   "description": "alexa zenkit list synchronization",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha",
-    "posttest": "nyc report",
+    "deploy-test": "nyc mocha",
+    "test": "mocha",
     "runit": "alexa-skill-local",
     "setit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /test_skill.json",
     "unsetit": "ask api update-skill -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -f /skill.json",
@@ -31,9 +31,7 @@
     "aws-sdk": "^2.814.0",
     "exponential-backoff": "^3.1.0",
     "import": "0.0.6",
-    "lodash": "^4.17.19",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.8"
+    "lodash": "^4.17.19"
   },
   "devDependencies": {
     "ask-sdk-dynamodb-persistence-adapter": "^2.7.0",

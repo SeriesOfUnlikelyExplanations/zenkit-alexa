@@ -48,11 +48,13 @@ describe("Testing the skill", function() {
       .get('/v2/householdlists/custom_list_list_id/completed/')
       .reply(200, alexa.EMPTY_CUSTOM_LIST_DATA);
 
-    nock('https://todo.zenkit.com:443')
+    zenkitNock = nock('https://todo.zenkit.com:443')
       .persist()
       .get('/api/v1/users/me/workspacesWithLists')
       .reply(200, zenkit.ZENKIT_WORKSPACE_DATA)
       .post('/api/v1/workspaces/442548/lists')
+      .reply(200, zenkit.GET_LISTS_IN_WORKSPACE)
+      .post('/api/v1/workspaces/442026/lists')
       .reply(200, zenkit.GET_LISTS_IN_WORKSPACE)
       .get('/api/v1/lists/1225299/elements')
       .reply(200, zenkit.ELEMENTS_DATA)
@@ -60,7 +62,11 @@ describe("Testing the skill", function() {
       .reply(200, zenkit.ELEMENTS_DATA)
       .get('/api/v1/lists/1347812/elements')
       .reply(200, zenkit.ELEMENTS_DATA)
+      .get('/api/v1/lists/1067607/elements')
+      .reply(200, zenkit.ELEMENTS_DATA)
       .post('/api/v1/lists/1225299/entries/filter')
+      .reply(200, zenkit.TODO_ENTRIES_DATA)
+      .post('/api/v1/lists/1067607/entries/filter')
       .reply(200, zenkit.TODO_ENTRIES_DATA)
       .post('/api/v1/lists/1263156/entries/filter')
       .reply(200, zenkit.SHOPPING_ENTRIES_DATA)
@@ -82,7 +88,8 @@ describe("Testing the skill", function() {
        ]})
 
     nock.emitter.on("no match", (req) => {
-      console.log(req._key)
+      console.log(req.path)
+      console.log(req.method)
       assert(false, 'application failure: no match')
     })
 
@@ -108,7 +115,7 @@ describe("Testing the skill", function() {
   });
 
   describe("test zenkit --> alexa", () => {
-    it('Try to create new item', (done) => {
+    it('Try to create new item', async () => {
       var ctx = context();
       nock('https://todo.zenkit.com:443')
         .post('/api/v1/lists/1225299/entries', (body) => {
@@ -137,19 +144,63 @@ describe("Testing the skill", function() {
         });
 
       index.handler(req.SYNC_MESSAGE_RECEIVED, ctx, (err, data) => { })
-      ctx.Promise
+      await ctx.Promise
         .then(() => {
           console.log('created new item - Success!');
-          done();
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
-          done(err);
         });
     });
-    it('Try to trigger Zenkit --> Alexa sync', (done) => {
+    it('Try to trigger Zenkit --> Alexa sync with no to-do workspace', async() => {
       var ctx = context();
-      sinon.stub(AWS.DynamoDB.DocumentClient.prototype, 'scan')
+      nock('https://todo.zenkit.com:443')
+        .post('/api/v1/lists/1225299/entries', (body) => {
+            console.log('todo item two created in zenkit');
+            expect(body.sortOrder).to.equal('lowest');
+            expect(body.displayString).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_text']).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_searchText']).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_textType']).to.equal('plain');
+            return body
+        })
+        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
+
+      nock('https://api.amazonalexa.com')
+        .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
+          console.log('todo item one created in Alexa');
+          expect(body.value).to.equal('todo item one');
+          expect(body.status).to.equal('active');
+          return body
+        })
+        .reply(200, { "id": 'todo_list_item_id',
+          "value": 'todo item one',
+          "status": 'active',
+          "createdTime": 'Wed Sep 27 10:46:30 UTC 2017',
+          "updatedTime": 'Wed Sep 27 10:46:30 UTC 2017'
+        })
+        .delete('/v2/householdlists/shopping_list_list_id/items/item_id_two/')
+        .reply(200)
+        .delete('/v2/householdlists/custom_list_list_id/items/item_id_two/')
+        .reply(200);
+
+      zenkitNock.interceptors.find(({ path }) => path == '/api/v1/users/me/workspacesWithLists').body = zenkit.ZENKIT_WORKSPACE_DATA_NO_TODO;
+
+      index.handler(req.SYNC_MESSAGE_RECEIVED, ctx, (err, data) => { })
+      await ctx.Promise
+        .then(() => {
+          console.log('created new item - Success!');
+        })
+        .catch(err => {
+          assert(false, 'application failure:'.concat(err))
+        });
+      zenkitNock.interceptors.find(({ path }) => path == '/api/v1/users/me/workspacesWithLists').body = zenkit.ZENKIT_WORKSPACE_DATA;
+    });
+    
+    
+    it('Try to trigger Zenkit --> Alexa sync', async () => {
+      var ctx = context();
+      ddbStub = sinon.stub(AWS.DynamoDB.DocumentClient.prototype, 'scan')
         .returns({promise: function () {
           return Promise.resolve({Items:[
             {userId:'amzn1.ask.account.one'},
@@ -183,20 +234,21 @@ describe("Testing the skill", function() {
         .reply(200)
 
       index.handler(req.SEND_SYNC_MESSAGE, ctx, (err, data) => { })
-      ctx.Promise
+      await ctx.Promise
         .then(() => {
           console.log('created new item - Success!');
-          done();
+          ddbStub.restore()
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
-          done(err);
+          
         });
+      ddbStub.restore()
     });
   });
 
   describe("test alexa --> zenkit", () => {
-    it('Try to create new item in Zenkit from Alexa', (done) => {
+    it('Try to create new item in Zenkit from Alexa', async () => {
       var ctx = context();
       nock('https://todo.zenkit.com:443')
         .post('/api/v1/lists/1067607/entries', (body) => {
@@ -212,18 +264,16 @@ describe("Testing the skill", function() {
         .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
 
       index.handler(req.ITEMS_CREATED_WITH_TOKEN, ctx, (err, data) => { })
-      ctx.Promise
+      await ctx.Promise
         .then(() => {
           console.log('created new item in Zenkit from Alexa - Success!');
-          done();
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
-          done(err);
         });
     });
 
-    it('Try to create new item in Zenkit from Alexa - with missing zenkit token', (done) => {
+    it('Try to create new item in Zenkit from Alexa - with missing zenkit token', async () => {
       var ctx = context();
       nock('https://api.amazonalexa.com:443')
         .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
@@ -240,20 +290,18 @@ describe("Testing the skill", function() {
         });
 
       index.handler(req.ITEMS_CREATED_WITH_MISSING_TOKEN, ctx, (err, data) => { })
-      ctx.Promise
+      await ctx.Promise
         .then(() => {
           console.log('created sync reminder item in Alexa - Success!');
-          done();
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
-          done(err);
         });
     });
   });
 
   describe("test skill events", () => {
-    it('Customer enabled the skill', (done) => {
+    it('Customer enabled the skill', async () => {
       var ctx = context();
       nock('https://todo.zenkit.com:443')
         .post('/api/v1/lists/1225299/entries', (body) => {
@@ -282,14 +330,12 @@ describe("Testing the skill", function() {
         })
 
       index.handler(req.LINK_SKILL, ctx, (err, data) => { })
-      ctx.Promise
+      await ctx.Promise
         .then(() => {
           console.log('Customer enabled the skill - Success!');
-          done();
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
-          done();
         });
     });
   });

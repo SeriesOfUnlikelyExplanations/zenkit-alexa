@@ -78,7 +78,8 @@ class SyncListClient {
     var [alexaLists, zenkitLists] = await Promise.all([
       this.getAlexaLists(), this.zenKitClient.getListsInWorkspace()]);
     if (!zenkitLists) {
-      zenkitLists = this.zenKitClient.getListsInWorkspace(this.zenKitClient.workspaces[0].id)
+      this.zenKitClient.setDefaultWorkspaces(this.zenKitClient.workspaces[0].id);
+      zenkitLists = await this.zenKitClient.getListsInWorkspace();
     }
     var workspace = '';
     //Itterate over alexa lists and make sure zenkit list exists and has metadata
@@ -87,6 +88,7 @@ class SyncListClient {
       if (!(Object.keys(zenkitLists).some(key => zenkitLists[key].name === zenkitListName))) {
         console.log('Creating list: ' + zenkitListName);
         const newList = await this.zenKitClient.createList(zenkitListName);
+        console.log(newList.id);
         zenkitLists[newList.id] = newList;
       };
     }
@@ -196,11 +198,11 @@ class SyncListClient {
    */
   async updateZenkitList(request) {
     var syncedList = this.syncedLists.find((syncedList) => syncedList.alexaId === request.listId);
-    if (!(syncedList)) {
+    await this.zenKitClient.getListsInWorkspace();
+    if (!syncedList) {
       const list = await backOff(() => this.householdListManager.getList(request.listId, 'active'));
       console.log('Creating new list: ' + list.name);
       const zenkitList = await this.zenKitClient.createList(list.name, this.syncedLists[0].workspaceId);
-      const element = await this.zenKitClient.getElements(zenkitList.shortId);
       this.syncedLists.push({
         alexaId: request.listId,
         alexaListName: list.name,
@@ -208,18 +210,10 @@ class SyncListClient {
         items: [],
         listId: zenkitList.id,
         shortListId: zenkitList.shortId,
-        titleUuid: element.find(list => list.name ===  'Title').uuid,
-        uncompleteId: element.find(list => list.name ===  'Stage')
-          .elementData
-          .predefinedCategories
-          .find(list => list.name ===  'To-Do')
-          .id,
-        completeId: element.find(list => list.name ===  'Stage')
-          .elementData
-          .predefinedCategories
-          .find(list => list.name ===  'Done')
-          .id,
-        stageUuid: element.find(list => list.name ===  'Stage').uuid,
+        titleUuid: zenkitList.titleUuid,
+        uncompleteId: zenkitList.uncompleteId,
+        completeId: zenkitList.completeId,
+        stageUuid: zenkitList.stageUuid,
         workspaceId: zenkitList.workspaceId
       })
       syncedList = this.syncedLists.find((syncedList) => syncedList.alexaId === request.listId);
@@ -238,7 +232,7 @@ class SyncListClient {
           promises.push(
             // Set zenKit item to be added
             this.zenKitClient.addItem(
-              syncedList.listId, syncedList.titleUuid, alexaItem.value.toLowerCase()
+              syncedList.listId, alexaItem.value.toLowerCase(), syncedList.titleUuid
             ).then(function (res) {
               // Add new synced item
               syncedItems.push({

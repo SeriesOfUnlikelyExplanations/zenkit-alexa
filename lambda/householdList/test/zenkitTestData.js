@@ -1,10 +1,6 @@
 'use strict';
 
-//https://developer.amazon.com/en-US/docs/alexa/custom-skills/access-the-alexa-shopping-and-to-do-lists.html#getList
-
-module.exports = Object.freeze({
-  // --------------------------------------------------- 'https://todo.zenkit.com/api/v1/users/me/workspacesWithLists' -------------------------------------------------------------
-  ZENKIT_WORKSPACE_DATA: [{
+const WORKSPACE_DATA = [{
     "id": 442548,
     "shortId": "zDRYcB7RqS",
     "uuid": "98215b7a-b517-41c7-85ab-9905f45c260d",
@@ -272,7 +268,12 @@ module.exports = Object.freeze({
         "created_by": 400423
       }]
     }]
-  }],
+  }];
+
+module.exports = Object.freeze({
+  // --------------------------------------------------- 'https://todo.zenkit.com/api/v1/users/me/workspacesWithLists' -------------------------------------------------------------
+  ZENKIT_WORKSPACE_DATA: WORKSPACE_DATA,
+  ZENKIT_WORKSPACE_DATA_NO_TODO: [WORKSPACE_DATA[1]],
   // -------------------------------------------------------- https://todo.zenkit.com/api/v1/lists/{listId}/elements --------------------------------------------------------------
   ELEMENTS_DATA: [{
     "id": 13435090,
@@ -728,7 +729,7 @@ module.exports = Object.freeze({
       "uuid": "3442d33e-3920-4b30-b1f0-ae8ad2a25b6e",
       "workspaceId": 442548,
       "backgroundId": null,
-      "name": "Hardware store",
+      "name": "custom list",
       "itemName": null,
       "itemNamePlural": null,
       "description": "",

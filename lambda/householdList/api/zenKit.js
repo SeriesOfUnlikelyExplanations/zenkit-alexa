@@ -28,7 +28,9 @@ class ZenkitSDK {
     } else {
       this.defaultWorkspace = this.workspaces[0];
     }
-    this.defaultWorkspaceId = this.defaultWorkspace.id
+    if (typeof this.defaultWorkspace != 'undefined') {
+      this.defaultWorkspaceId = this.defaultWorkspace.id
+    }
     return this.workspaces
   }
   
@@ -58,6 +60,7 @@ class ZenkitSDK {
     this.ListsInWorkspace = {};
     workspace.lists.forEach(list =>
       this.ListsInWorkspace[list.id] = {
+        id: list.id,
         name: list.name,
         shortId: list.shortId,
         workspaceId: list.workspaceId,
@@ -75,7 +78,6 @@ class ZenkitSDK {
   
   async getListDetails(listId) {
     const [elements, listItems] = await Promise.all([await this.handleRequest('lists/' + listId + '/elements'), this.handleRequest('lists/' + listId + '/entries/filter', 'POST')]);
-    console.log(this.ListsInWorkspace[listId]);
     this.ListsInWorkspace[listId].titleUuid = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'title')).uuid;
     this.ListsInWorkspace[listId].uncompleteId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
       .elementData.predefinedCategories
@@ -90,7 +92,7 @@ class ZenkitSDK {
       item.completed = (item[this.ListsInWorkspace[listId].stageUuid  + '_categories_sort'].some(({ name }) => name === 'Done'));
     });
     this.ListsInWorkspace[listId].items = listItems;
-    return this.ListsInWorkspace[listId];
+    return await this.ListsInWorkspace[listId];
   }
 
   /**
@@ -100,7 +102,16 @@ class ZenkitSDK {
    * @return {Promise}
    */
   async createList(listName, workspaceId=this.defaultWorkspace.id) {
-    const list = await this.handleRequest('workspaces/' + workspaceId + '/lists', 'POST', {name: listName})
+    const lists = await this.handleRequest('workspaces/' + workspaceId + '/lists', 'POST', {name: listName})
+    const list = lists.find(({ name }) => name == listName)
+    console.log(list.id);
+    this.ListsInWorkspace[list.id] = {
+        id: list.id,
+        name: list.name,
+        shortId: list.shortId,
+        workspaceId: list.workspaceId,
+        inbox: list.resourceTags.some(resourceTag => resourceTag.appType === 'todos' && resourceTag.tag === 'inbox')
+      }
     return await this.getListDetails(list.id)
   }
 
@@ -121,15 +132,19 @@ class ZenkitSDK {
   * @param  {String}  value
   * @return {Promise}
   */
-  addItem(listId, value) {
+  async addItem(listId, value, titleUuid = this.todoLists[listId].titleUuid) {
+    if (typeof titleUuid =='undefined') {
+      await this.getListDetails(listId)
+      titleUuid = this.todoLists[listId].titleUuid
+    }
     const scope = 'lists/' + listId + '/entries';
     const parameters = {
       'uuid': randomUUID(),
       'sortOrder': 'lowest',
       'displayString': value,
-      [this.todoLists[listId].titleUuid + '_text']: value,
-      [this.todoLists[listId].titleUuid + '_searchText']: value,
-      [this.todoLists[listId].titleUuid + '_textType']: 'plain'
+      [titleUuid + '_text']: value,
+      [titleUuid + '_searchText']: value,
+      [titleUuid + '_textType']: 'plain'
     };
     return this.handleRequest(scope, 'POST', parameters);
   }
@@ -199,7 +214,6 @@ class ZenkitSDK {
     if (Object.keys(queryParameters).length) {
       queryString = `?${querystring.stringify(queryParameters)}`
     } 
-    
     var options = {
       hostname: this.host,
       port: 443,
@@ -210,13 +224,15 @@ class ZenkitSDK {
         [this.keyType]: this.key
       }
     }
+    console.log(options);
     var paramString;
     if (Object.keys(parameters).length) {
+      console.log(parameters);
       paramString = JSON.stringify(parameters);
       options.headers['Content-Type'] = 'application/json';
       options.headers['Content-Length'] = Buffer.byteLength(paramString)
     }
-    console.log(options);
+    
     return new Promise(function(resolve, reject) {
       var req = https.request(options, function(res) {
         var body = [];
