@@ -225,6 +225,7 @@ class ZenkitSDK {
       }
     }
     console.log(options);
+    console.log(parameters);
     var paramString = '';
     if (Object.keys(parameters).length) {
       console.log(parameters);
