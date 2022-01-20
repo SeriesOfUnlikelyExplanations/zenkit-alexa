@@ -13,7 +13,7 @@ const zenkit = require('./zenkitTestData.js');
 
 // https://sinonjs.org/how-to/stub-dependency/
 describe("Testing the skill", function() {
-  this.timeout(4000);
+  this.timeout(3000);
   before(() => {
     nock('https://api.amazonalexa.com')
       .persist()
