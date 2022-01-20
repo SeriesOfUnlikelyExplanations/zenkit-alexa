@@ -103,6 +103,7 @@ class ZenkitSDK {
       .find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'done'))
       .id;
     this.ListsInWorkspace[listId].stageUuid = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage')).uuid;
+    
     listItems.forEach((item) => {
       item.completed = (item[this.ListsInWorkspace[listId].stageUuid  + '_categories'].includes(this.ListsInWorkspace[listId].completeId));
     });

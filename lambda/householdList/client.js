@@ -185,6 +185,7 @@ class SyncListClient {
         stageUuid: zenkitList.stageUuid,
         workspaceId: zenkitList.workspaceId
       };
+      console.log(syncedList);
       this.syncedLists.push(syncedList);
     }
     //Return synced items promise result
