@@ -75,13 +75,11 @@ class SyncListClient {
    * @return {Promise}
    */
   async updateAlexaList(newUser = false) {
-    try {
-      var [alexaLists, zenkitLists] = await Promise.all([
-        this.getAlexaLists(), this.zenKitClient.getListsInWorkspace()]);
-    } catch(e) {
+    var [alexaLists, zenkitLists] = await Promise.all([
+      this.getAlexaLists(), this.zenKitClient.getListsInWorkspace()]);
+    if (!zenkitLists) {
       this.zenKitClient.setDefaultWorkspace(this.zenKitClient.workspaces[0].id);
-      var [alexaLists, zenkitLists] = await Promise.all([
-        this.getAlexaLists(), this.zenKitClient.getListsInWorkspace()]);
+      zenkitLists = await this.zenKitClient.getListsInWorkspace();
     }
     var workspace = '';
     //Itterate over alexa lists and make sure zenkit list exists and has metadata
