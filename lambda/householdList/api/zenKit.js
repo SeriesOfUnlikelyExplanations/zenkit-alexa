@@ -11,11 +11,18 @@ class ZenkitSDK {
    * @param {String} apiUrl
    * @param {String} key
    */
-  constructor(key, { keyType = 'Zenkit-API-Key', host = 'todo.zenkit.com', apiScope = 'api/v1' }) {
-    this.host = host; // use this to determine which app we are in. This class is primarily modeled after todo, I'd like to modify to support the base and hypernotes app at some point.
+  constructor(key, { keyType = 'Zenkit-API-Key', appType = 'todo', apiScope = 'api/v1' }) {
+    if (!['base','todo'].includes(appType)) {
+      throw(`appType - ${appType} - not supported`);
+    }
+    if (!['Zenkit-API-Key','Authorization'].includes(keyType)) {
+      throw(`keyType - ${keyType} - not supported`);
+    }
+    this.host = `${appType}.zenkit.com`; // use this to determine which app we are in. This class is primarily modeled after todo, I'd like to modify to support the base and hypernotes app at some point.
     this.apiScope = apiScope;
     this.key = key;
     this.keyType = keyType; // can be 'Zenkit-API-Key' or 'Authorizaion' for oAuth Clients
+    this.ListsInWorkspace = {};
   }
 
   async getWorkspaces() {
@@ -25,8 +32,9 @@ class ZenkitSDK {
         resourceTags.some(({ appType, tag })  => appType === 'todos' && tag === 'defaultFolder')
         && lists.some(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'inbox'))
       )
-    } else {
-      this.defaultWorkspace = this.workspaces[0];
+    } else if (this.host === 'base.zenkit.com') {
+      this.defaultWorkspace = this.workspaces.find(({ resourceTags, lists})  =>
+        resourceTags.some(({ appType, tag })  => appType === 'base' && tag === 'workspace'));
     }
     if (typeof this.defaultWorkspace != 'undefined') {
       this.defaultWorkspaceId = this.defaultWorkspace.id
@@ -34,12 +42,17 @@ class ZenkitSDK {
     return this.workspaces
   }
   
-  async setDefaultWorkspaces(workspaceId) {
+  async setDefaultWorkspace(workspaceId) {
     if (!this.workspaces) {
       await this.getWorkspaces()
     }
-    this.defaultWorkspace = this.workspaces.find(({ id }) => id === workspaceId);
-    this.defaultWorkspaceId = this.defaultWorkspace.id
+    const workspace = this.workspaces.find(({ id }) => id === workspaceId);
+    if (typeof workspace == 'undefined') {
+      throw(`Workspace ID - ${workspaceId} - does not exist`)
+    }
+    this.defaultWorkspace = workspace;
+    this.defaultWorkspaceId = workspace.id;
+    return workspace;
   }
 
   /**
@@ -55,9 +68,8 @@ class ZenkitSDK {
     }
     const workspace = this.workspaces.find(({ id }) => id === workspaceId);
     if (typeof workspace === 'undefined') {
-      return null
+      throw(`Workspace ID - ${workspaceId} - does not exist`)
     }
-    this.ListsInWorkspace = {};
     workspace.lists.forEach(list =>
       this.ListsInWorkspace[list.id] = {
         id: list.id,
@@ -78,6 +90,9 @@ class ZenkitSDK {
   
   async getListDetails(listId) {
     const [elements, listItems] = await Promise.all([await this.handleRequest('lists/' + listId + '/elements'), this.handleRequest('lists/' + listId + '/entries/filter', 'POST')]);
+    if (!(listId in this.ListsInWorkspace)) {
+      this.ListsInWorkspace[listId] = {};
+    }
     this.ListsInWorkspace[listId].titleUuid = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'title')).uuid;
     this.ListsInWorkspace[listId].uncompleteId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
       .elementData.predefinedCategories
@@ -92,7 +107,25 @@ class ZenkitSDK {
       item.completed = (item[this.ListsInWorkspace[listId].stageUuid  + '_categories_sort'].some(({ name }) => name === 'Done'));
     });
     this.ListsInWorkspace[listId].items = listItems;
-    return await this.ListsInWorkspace[listId];
+    return this.ListsInWorkspace[listId];
+  }
+  
+  /** 
+  * Get all metadata about a list and all of it's items
+  * @param {string} listId
+  * @ return {Promise}
+  */
+  
+  updateListDetails(listId, listMetaData) {
+    if (!(listId in this.ListsInWorkspace)) {
+      this.ListsInWorkspace[listId] = {};
+    }
+    for (var [key, value] of Object.entries(listMetaData)) {
+      if (['titleUuid', 'uncompleteId','completeId','stageUuid'].includes(key)) {
+        this.ListsInWorkspace[listId][key] = value;
+      }
+    }
+    return this.ListsInWorkspace[listId];
   }
 
   /**
@@ -104,7 +137,6 @@ class ZenkitSDK {
   async createList(listName, workspaceId=this.defaultWorkspace.id) {
     const lists = await this.handleRequest('workspaces/' + workspaceId + '/lists', 'POST', {name: listName})
     const list = lists.find(({ name }) => name == listName)
-    console.log(list.id);
     this.ListsInWorkspace[list.id] = {
         id: list.id,
         name: list.name,
@@ -132,19 +164,15 @@ class ZenkitSDK {
   * @param  {String}  value
   * @return {Promise}
   */
-  async addItem(listId, value, titleUuid = this.todoLists[listId].titleUuid) {
-    if (typeof titleUuid =='undefined') {
-      await this.getListDetails(listId)
-      titleUuid = this.todoLists[listId].titleUuid
-    }
+  async addItem(listId, value) {
     const scope = 'lists/' + listId + '/entries';
     const parameters = {
       'uuid': randomUUID(),
       'sortOrder': 'lowest',
       'displayString': value,
-      [titleUuid + '_text']: value,
-      [titleUuid + '_searchText']: value,
-      [titleUuid + '_textType']: 'plain'
+      [this.ListsInWorkspace[listId].titleUuid + '_text']: value,
+      [this.ListsInWorkspace[listId].titleUuid + '_searchText']: value,
+      [this.ListsInWorkspace[listId].titleUuid + '_textType']: 'plain'
     };
     return this.handleRequest(scope, 'POST', parameters);
   }
@@ -173,11 +201,28 @@ class ZenkitSDK {
    * @param  {Int}  statusId
    * @return {Promise}
    */
-  updateItemStatus(listId, entryId, statusId ) {
+  completeItem(listId, entryId) {
     const scope = 'lists/' + listId + '/entries/' + entryId;
     const parameters = {
       "updateAction": "replace",
-      [this.todoLists[listId].stageUuid + "_categories"]: [statusId]
+      [this.ListsInWorkspace[listId].stageUuid + "_categories"]: [this.ListsInWorkspace[listId].completeId]
+    };
+    return this.handleRequest(scope, 'PUT', parameters);
+  }
+  
+  /**
+   * update the "complete" status of an item
+   * @param  {int}  listId
+   * @param  {Int}  entryId
+   * @param  {String} stageUuid
+   * @param  {Int}  statusId
+   * @return {Promise}
+   */
+  uncompleteItem(listId, entryId) {
+    const scope = 'lists/' + listId + '/entries/' + entryId;
+    const parameters = {
+      "updateAction": "replace",
+      [this.ListsInWorkspace[listId].stageUuid + "_categories"]: [this.ListsInWorkspace[listId].uncompleteId]
     };
     return this.handleRequest(scope, 'PUT', parameters);
   }
@@ -194,7 +239,7 @@ class ZenkitSDK {
     const scope = 'lists/' + listId + '/entries/' + entryId;
     const parameters = {
       "updateAction": "replace",
-      [this.todoLists[listId].titleUuid + '_text']: value
+      [this.ListsInWorkspace[listId].titleUuid + '_text']: value
     };
     return this.handleRequest(scope, 'PUT', parameters);
   }
@@ -206,18 +251,14 @@ class ZenkitSDK {
    //~ * @param  {Object} parameters
    //~ * @return {Promise}
    //~ */
-  async handleRequest(scope, method = 'GET', parameters = {}, queryParameters ={}) {
+  async handleRequest(scope, method = 'GET', parameters = {}) {
     // Define request options
     //~ queryParameters.ie = (new Date()).getTime();
     //~ queryParameters.show_archived = false
-    var queryString = '';
-    if (Object.keys(queryParameters).length) {
-      queryString = `?${querystring.stringify(queryParameters)}`
-    } 
     var options = {
       hostname: this.host,
       port: 443,
-      path: `/${this.apiScope}/${scope}${queryString}`,
+      path: `/${this.apiScope}/${scope}`,
       method: method,
       headers: {
         'Cache-Control':'no-cache',
@@ -225,7 +266,6 @@ class ZenkitSDK {
       }
     }
     console.log(options);
-    console.log(parameters);
     if (Object.keys(parameters).length) {
       console.log(parameters);
       const paramString = JSON.stringify(parameters);
@@ -261,13 +301,11 @@ class ZenkitSDK {
       });
       if (Object.keys(parameters).length) {
         const paramString = JSON.stringify(parameters);
-        console.log(paramString);
         req.write(paramString);
       }
       req.end();
     });
   }
 }
-
 
 module.exports = ZenkitSDK;

@@ -78,7 +78,7 @@ class SyncListClient {
     var [alexaLists, zenkitLists] = await Promise.all([
       this.getAlexaLists(), this.zenKitClient.getListsInWorkspace()]);
     if (!zenkitLists) {
-      this.zenKitClient.setDefaultWorkspaces(this.zenKitClient.workspaces[0].id);
+      this.zenKitClient.setDefaultWorkspace(this.zenKitClient.workspaces[0].id);
       zenkitLists = await this.zenKitClient.getListsInWorkspace();
     }
     var workspace = '';
@@ -198,7 +198,6 @@ class SyncListClient {
    */
   async updateZenkitList(request) {
     var syncedList = this.syncedLists.find((syncedList) => syncedList.alexaId === request.listId);
-    await this.zenKitClient.getListsInWorkspace();
     if (!syncedList) {
       const list = await backOff(() => this.householdListManager.getList(request.listId, 'active'));
       console.log('Creating new list: ' + list.name);
@@ -224,6 +223,8 @@ class SyncListClient {
     const alexaItems = await Promise.all(
       request.listItemIds.map(itemId => request.type === 'ItemsDeleted' ? {id: itemId} :
         backOff(() => this.householdListManager.getListItem(request.listId, itemId))));
+    
+    this.zenKitClient.updateListDetails(syncedList.listId, syncedList);
     alexaItems.forEach((alexaItem) => {
       if (request.type === 'ItemsCreated') {
         // Determine synced item with alexa item value
@@ -232,7 +233,7 @@ class SyncListClient {
           promises.push(
             // Set zenKit item to be added
             this.zenKitClient.addItem(
-              syncedList.listId, alexaItem.value.toLowerCase(), syncedList.titleUuid
+              syncedList.listId, alexaItem.value.toLowerCase()
             ).then(function (res) {
               // Add new synced item
               syncedItems.push({
@@ -258,17 +259,20 @@ class SyncListClient {
             if (syncedItem.value !== value) {
               promises.push(
               this.zenKitClient.updateItemTitle(
-                syncedList.listId, syncedItem.zenKitEntryId,
-                syncedList.titleUuid, alexaItem.value.toLowerCase())
+                syncedList.listId, syncedItem.zenKitEntryId, alexaItem.value.toLowerCase())
               );
             }
             // Set zenkit item crossed status to be updated if different
             if (syncedItem.status !== alexaItem.status) {
-              promises.push(
-                this.zenKitClient.updateItemStatus(
-                  syncedList.listId, syncedItem.zenKitEntryId, syncedList.stageUuid,
-                  alexaItem.status === 'completed' ? syncedList.completeId : syncedList.uncompleteId)
-              );
+              if (alexaItem.status === 'completed') {
+                promises.push(
+                  this.zenKitClient.completeItem(syncedList.listId, syncedItem.zenKitEntryId)
+                )
+              } else {
+                promises.push(
+                  this.zenKitClient.uncompleteItem(syncedList.listId, syncedItem.zenKitEntryId)
+                );
+              }
             }
             // Update synced item
             Object.assign(syncedItem, {

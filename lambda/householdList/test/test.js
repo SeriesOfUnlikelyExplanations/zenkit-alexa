@@ -151,53 +151,8 @@ describe("Testing the skill", function() {
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
         });
+      return true
     });
-    it('Try to trigger Zenkit --> Alexa sync with no to-do workspace', async() => {
-      var ctx = context();
-      nock('https://todo.zenkit.com:443')
-        .post('/api/v1/lists/1225299/entries', (body) => {
-            console.log('todo item two created in zenkit');
-            expect(body.sortOrder).to.equal('lowest');
-            expect(body.displayString).to.equal('todo item two');
-            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_text']).to.equal('todo item two');
-            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_searchText']).to.equal('todo item two');
-            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_textType']).to.equal('plain');
-            return body
-        })
-        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
-
-      nock('https://api.amazonalexa.com')
-        .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
-          console.log('todo item one created in Alexa');
-          expect(body.value).to.equal('todo item one');
-          expect(body.status).to.equal('active');
-          return body
-        })
-        .reply(200, { "id": 'todo_list_item_id',
-          "value": 'todo item one',
-          "status": 'active',
-          "createdTime": 'Wed Sep 27 10:46:30 UTC 2017',
-          "updatedTime": 'Wed Sep 27 10:46:30 UTC 2017'
-        })
-        .delete('/v2/householdlists/shopping_list_list_id/items/item_id_two/')
-        .reply(200)
-        .delete('/v2/householdlists/custom_list_list_id/items/item_id_two/')
-        .reply(200);
-
-      zenkitNock.interceptors.find(({ path }) => path == '/api/v1/users/me/workspacesWithLists').body = zenkit.ZENKIT_WORKSPACE_DATA_NO_TODO;
-
-      index.handler(req.SYNC_MESSAGE_RECEIVED, ctx, (err, data) => { })
-      await ctx.Promise
-        .then(() => {
-          console.log('created new item - Success!');
-        })
-        .catch(err => {
-          assert(false, 'application failure:'.concat(err))
-        });
-      zenkitNock.interceptors.find(({ path }) => path == '/api/v1/users/me/workspacesWithLists').body = zenkit.ZENKIT_WORKSPACE_DATA;
-    });
-    
-    
     it('Try to trigger Zenkit --> Alexa sync', async () => {
       var ctx = context();
       ddbStub = sinon.stub(AWS.DynamoDB.DocumentClient.prototype, 'scan')
@@ -237,20 +192,47 @@ describe("Testing the skill", function() {
       await ctx.Promise
         .then(() => {
           console.log('created new item - Success!');
-          ddbStub.restore()
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
           
         });
       ddbStub.restore()
+      return true
+    });
+    it('Try to trigger Zenkit --> Alexa sync with no to-do workspace', async() => {
+      var ctx = context();
+      nock('https://todo.zenkit.com:443')
+        .post('/api/v1/lists/1225299/entries', (body) => {
+            console.log('todo item two created in zenkit');
+            expect(body.sortOrder).to.equal('lowest');
+            expect(body.displayString).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_text']).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_searchText']).to.equal('todo item two');
+            expect(body['bdbcc0f2-9dda-4381-8dd7-05b782dd6722_textType']).to.equal('plain');
+            return body
+        })
+        .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
+
+      zenkitNock.interceptors.find(({ path }) => path == '/api/v1/users/me/workspacesWithLists').body = zenkit.ZENKIT_WORKSPACE_DATA_NO_TODO;
+
+      index.handler(req.SYNC_MESSAGE_RECEIVED, ctx, (err, data) => { })
+      await ctx.Promise
+        .then(() => {
+          console.log('created new item - Success!')
+        })
+        .catch(err => {
+          assert(false, 'application failure:'.concat(err))
+        });
+      zenkitNock.interceptors.find(({ path }) => path == '/api/v1/users/me/workspacesWithLists').body = zenkit.ZENKIT_WORKSPACE_DATA;
+      return true
     });
   });
 
   describe("test alexa --> zenkit", () => {
     it('Try to create new item in Zenkit from Alexa', async () => {
       var ctx = context();
-      nock('https://todo.zenkit.com:443')
+      nock('https://todo.zenkit.com')
         .post('/api/v1/lists/1067607/entries', (body) => {
             console.log('todo item added created in Zenkit');
             expect(body.sortOrder).to.equal('lowest');
@@ -271,11 +253,12 @@ describe("Testing the skill", function() {
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
         });
+      return true
     });
 
     it('Try to create new item in Zenkit from Alexa - with missing zenkit token', async () => {
       var ctx = context();
-      nock('https://api.amazonalexa.com:443')
+      nock('https://api.amazonalexa.com')
         .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
           console.log('sync reminder created in Alexa');
           expect(body.value).to.equal('Zenkit Alexa Sync is not setup correctly! Go to https://www.amazon.com/dp/B087C8XQ3T and click on "Link Account"');
@@ -297,6 +280,7 @@ describe("Testing the skill", function() {
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
         });
+      return true
     });
   });
 
@@ -333,10 +317,12 @@ describe("Testing the skill", function() {
       await ctx.Promise
         .then(() => {
           console.log('Customer enabled the skill - Success!');
+          
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
         });
+      return true
     });
   });
 });
