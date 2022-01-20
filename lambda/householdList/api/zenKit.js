@@ -94,8 +94,14 @@ class ZenkitSDK {
       this.ListsInWorkspace[listId] = {};
     }
     this.ListsInWorkspace[listId].titleUuid = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'title')).uuid;
-    this.ListsInWorkspace[listId].uncompleteId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'todo')).id;
-    this.ListsInWorkspace[listId].completeId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'done')).id;
+    this.ListsInWorkspace[listId].uncompleteId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
+      .elementData.predefinedCategories
+      .find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'todo'))
+      .id;
+    this.ListsInWorkspace[listId].completeId = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage'))
+      .elementData.predefinedCategories
+      .find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'done'))
+      .id;
     this.ListsInWorkspace[listId].stageUuid = elements.find(({ resourceTags }) => resourceTags.some(({ appType, tag }) => appType === 'todos' && tag === 'stage')).uuid;
     listItems.forEach((item) => {
       item.completed = (item[this.ListsInWorkspace[listId].stageUuid  + '_categories'].includes(this.ListsInWorkspace[listId].completeId));
