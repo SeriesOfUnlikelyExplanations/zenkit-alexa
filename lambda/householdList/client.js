@@ -80,7 +80,8 @@ class SyncListClient {
         this.getAlexaLists(), this.zenKitClient.getListsInWorkspace()]);
     } catch(e) {
       this.zenKitClient.setDefaultWorkspace(this.zenKitClient.workspaces[0].id);
-      zenkitLists = await this.zenKitClient.getListsInWorkspace();
+      var [alexaLists, zenkitLists] = await Promise.all([
+        this.getAlexaLists(), this.zenKitClient.getListsInWorkspace()]);
     }
     var workspace = '';
     //Itterate over alexa lists and make sure zenkit list exists and has metadata
