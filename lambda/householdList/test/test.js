@@ -15,39 +15,50 @@ const zenkit = require('./zenkitTestData.js');
 describe("Testing the skill", function() {
   this.timeout(3000);
   before(() => {
+<<<<<<< HEAD
     nock('https://api.amazonalexa.com').persist()
       .get('/v2/householdlists/')
+=======
+    nock('https://api.amazonalexa.com')
+      .persist()
+      .get('/v2/householdlists')
+>>>>>>> 57501a0c9b1507807129c14b5f92fafcdf5fd208
       .reply(200, alexa.LISTS_DATA)
-      .get('/v2/householdlists/todo_list_list_id/active/')
+      .get('/v2/householdlists/todo_list_list_id/active')
       .reply(200, alexa.EMPTY_TODO_LIST_DATA)
-      .get('/v2/householdlists/todo_list_list_id/completed/')
+      .get('/v2/householdlists/todo_list_list_id/completed')
       .reply(200, alexa.EMPTY_TODO_LIST_DATA)
-      .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_id/')
+      .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_id')
       .reply(200, alexa.TODO_LIST_ITEM_DATA)
-      .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_id/')
+      .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_id')
       .reply(200, alexa.TODO_LIST_ITEM_DATA)
-      .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_added_id/')
+      .get('/v2/householdlists/todo_list_list_id/items/todo_list_item_added_id')
       .reply(200, alexa.TODO_LIST_ITEM_ADDED_DATA)
-      .get('/v2/householdlists/todo_list_list_id_missing/active/')
+      .get('/v2/householdlists/todo_list_list_id_missing/active')
       .reply(200, alexa.EMPTY_TODO_LIST_DATA)
-      .get('/v2/householdlists/todo_list_list_id_missing/completed/')
+      .get('/v2/householdlists/todo_list_list_id_missing/completed')
       .reply(200, alexa.EMPTY_TODO_LIST_DATA)
-      .get('/v2/householdlists/todo_list_list_id_missing/items/todo_list_item_id/')
+      .get('/v2/householdlists/todo_list_list_id_missing/items/todo_list_item_id')
       .reply(200, alexa.TODO_LIST_ITEM_DATA)
-      .get('/v2/householdlists/todo_list_list_id_missing/items/todo_list_item_id/')
+      .get('/v2/householdlists/todo_list_list_id_missing/items/todo_list_item_id')
       .reply(200, alexa.TODO_LIST_ITEM_DATA)
-      .get('/v2/householdlists/todo_list_list_id_missing/items/todo_list_item_added_id/')
+      .get('/v2/householdlists/todo_list_list_id_missing/items/todo_list_item_added_id')
       .reply(200, alexa.TODO_LIST_ITEM_ADDED_DATA)
-      .get('/v2/householdlists/shopping_list_list_id/active/')
+      .get('/v2/householdlists/shopping_list_list_id/active')
       .reply(200, alexa.SHOPPING_LIST_DATA)
-      .get('/v2/householdlists/shopping_list_list_id/completed/')
+      .get('/v2/householdlists/shopping_list_list_id/completed')
       .reply(200, alexa.EMPTY_SHOPPING_LIST_DATA)
-      .get('/v2/householdlists/custom_list_list_id/active/')
+      .get('/v2/householdlists/custom_list_list_id/active')
       .reply(200, alexa.CUSTOM_LIST_DATA)
-      .get('/v2/householdlists/custom_list_list_id/completed/')
+      .get('/v2/householdlists/custom_list_list_id/completed')
       .reply(200, alexa.EMPTY_CUSTOM_LIST_DATA);
 
+<<<<<<< HEAD
     zenkitNock = nock('https://todo.zenkit.com').persist()
+=======
+    zenkitNock = nock('https://todo.zenkit.com')
+      .persist()
+>>>>>>> 57501a0c9b1507807129c14b5f92fafcdf5fd208
       .get('/api/v1/users/me/workspacesWithLists')
       .reply(200, zenkit.ZENKIT_WORKSPACE_DATA)
       .post('/api/v1/workspaces/442548/lists')
@@ -77,17 +88,28 @@ describe("Testing the skill", function() {
 
     nock('https://events.us-east-1.amazonaws.com')
       .persist()
-      .filteringPath(function(path){
-        return '/';
-      })
+      .filteringPath((path) => { return '/'; })
       .post("/")
       .reply(200, {'Rules': [
         {'Arn': 'AlexaSyncSchedule' }
        ]})
-
+       
+    nock('https://api.amazon.com')
+      .persist()
+      //~ .post('/auth/O2/token', (body) => {
+        //~ console.log('Retrieving token');
+        //~ expect(body.grant_type).to.equal('client_credentials');
+        //~ expect(body.scope).to.equal('alexa:skill_messaging');
+        //~ return body
+      //~ })
+      .filteringPath((path) => { console.log(path); return '/'; })
+      .post("/")
+      .reply(200, {access_token:'test_access_token'})
+      
     nock.emitter.on("no match", (req) => {
-      console.log(req.path)
-      console.log(req.method)
+      console.log(req.path);
+      console.log(req.method);
+      console.log(req);
       assert(false, 'application failure: no match')
     })
 
@@ -115,7 +137,7 @@ describe("Testing the skill", function() {
   describe("test zenkit --> alexa", () => {
     it('Try to create new item', async () => {
       var ctx = context();
-      nock('https://todo.zenkit.com:443')
+      nock('https://todo.zenkit.com')
         .post('/api/v1/lists/1225299/entries', (body) => {
             console.log('todo item two created in zenkit');
             expect(body.sortOrder).to.equal('lowest');
@@ -128,7 +150,7 @@ describe("Testing the skill", function() {
         .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
 
       nock('https://api.amazonalexa.com')
-        .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
+        .post('/v2/householdlists/todo_list_list_id/items', (body) => {
           console.log('todo item one created in Alexa');
           expect(body.value).to.equal('todo item one');
           expect(body.status).to.equal('active');
@@ -161,17 +183,6 @@ describe("Testing the skill", function() {
           ]});
         }})
 
-      nock('https://api.amazon.com')
-        .post('/auth/O2/token', (body) => {
-            console.log('Retrieving token');
-            expect(body.grant_type).to.equal('client_credentials');
-            expect(body.scope).to.equal('alexa:skill_messaging');
-            return body
-          }
-        )
-        .times(2)
-        .reply(200, {access_token:'test_access_token'})
-
        nock('https://api.amazonalexa.com')
         .post('/v1/skillmessages/users/amzn1.ask.account.one', (body) => {
           console.log('Creating sync message for amzn1.ask.account.one');
@@ -193,14 +204,13 @@ describe("Testing the skill", function() {
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
-          
         });
       ddbStub.restore()
       return true
     });
     it('Try to trigger Zenkit --> Alexa sync with no to-do workspace', async() => {
       var ctx = context();
-      nock('https://todo.zenkit.com:443')
+      nock('https://todo.zenkit.com')
         .post('/api/v1/lists/1225299/entries', (body) => {
             console.log('todo item two created in zenkit');
             expect(body.sortOrder).to.equal('lowest');
@@ -257,7 +267,7 @@ describe("Testing the skill", function() {
     it('Try to create new item in Zenkit from Alexa - with missing zenkit token', async () => {
       var ctx = context();
       nock('https://api.amazonalexa.com')
-        .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
+        .post('/v2/householdlists/todo_list_list_id/items', (body) => {
           console.log('sync reminder created in Alexa');
           expect(body.value).to.equal('Zenkit Alexa Sync is not setup correctly! Go to https://www.amazon.com/dp/B087C8XQ3T and click on "Link Account"');
           expect(body.status).to.equal('active');
@@ -285,7 +295,7 @@ describe("Testing the skill", function() {
   describe("test skill events", () => {
     it('Customer enabled the skill', async () => {
       var ctx = context();
-      nock('https://todo.zenkit.com:443')
+      nock('https://todo.zenkit.com')
         .post('/api/v1/lists/1225299/entries', (body) => {
             console.log('todo item two created in zenkit');
             expect(body.sortOrder).to.equal('lowest');
@@ -298,7 +308,7 @@ describe("Testing the skill", function() {
         .reply(200, zenkit.CREATE_SHOPPING_ENTRY_REPLY)
 
       nock('https://api.amazonalexa.com')
-        .post('/v2/householdlists/todo_list_list_id/items/', (body) => {
+        .post('/v2/householdlists/todo_list_list_id/items', (body) => {
           console.log('todo item one created in Alexa');
           expect(body.value).to.equal('todo item one');
           expect(body.status).to.equal('active');
