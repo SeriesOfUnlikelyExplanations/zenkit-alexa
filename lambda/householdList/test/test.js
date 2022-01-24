@@ -79,17 +79,28 @@ describe("Testing the skill", function() {
 
     nock('https://events.us-east-1.amazonaws.com')
       .persist()
-      .filteringPath(function(path){
-        return '/';
-      })
+      .filteringPath((path) => { return '/'; })
       .post("/")
       .reply(200, {'Rules': [
         {'Arn': 'AlexaSyncSchedule' }
        ]})
-
+       
+    nock('https://api.amazon.com')
+      .persist()
+      //~ .post('/auth/O2/token', (body) => {
+        //~ console.log('Retrieving token');
+        //~ expect(body.grant_type).to.equal('client_credentials');
+        //~ expect(body.scope).to.equal('alexa:skill_messaging');
+        //~ return body
+      //~ })
+      .filteringPath((path) => { console.log(path); return '/'; })
+      .post("/")
+      .reply(200, {access_token:'test_access_token'})
+      
     nock.emitter.on("no match", (req) => {
-      console.log(req.path)
-      console.log(req.method)
+      console.log(req.path);
+      console.log(req.method);
+      console.log(req);
       assert(false, 'application failure: no match')
     })
 
@@ -163,17 +174,6 @@ describe("Testing the skill", function() {
           ]});
         }})
 
-      nock('https://api.amazon.com')
-        .post('/auth/O2/token', (body) => {
-            console.log('Retrieving token');
-            expect(body.grant_type).to.equal('client_credentials');
-            expect(body.scope).to.equal('alexa:skill_messaging');
-            return body
-          }
-        )
-        .times(2)
-        .reply(200, {access_token:'test_access_token'})
-
        nock('https://api.amazonalexa.com')
         .post('/v1/skillmessages/users/amzn1.ask.account.one', (body) => {
           console.log('Creating sync message for amzn1.ask.account.one');
@@ -195,7 +195,6 @@ describe("Testing the skill", function() {
         })
         .catch(err => {
           assert(false, 'application failure:'.concat(err))
-          
         });
       ddbStub.restore()
       return true

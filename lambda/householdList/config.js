@@ -2,7 +2,6 @@
 
 module.exports = Object.freeze({
   // Alexa
-  ALEXA_API_URL:'https://api.amazonalexa.com',
   ALEXA_SHOPPING_LIST: 'Alexa shopping list',
   ALEXA_TODO_LIST: 'Alexa to-do list',
   // ZenKit
@@ -11,7 +10,7 @@ module.exports = Object.freeze({
   ZENKIT_INBOX_LIST: 'Inbox',
   // Skill
   SKILL_APP_ID: process.env.SKILL_APP_ID,
-  SKILL_CLIENT_ID: process.env.SKILL_CLIENT_ID,
-  SKILL_CLIENT_SECRET: process.env.SKILL_CLIENT_SECRET,
+  SKILL_CLIENT_ID: process.env.SKILL_CLIENT_ID || 'test_id',
+  SKILL_CLIENT_SECRET: process.env.SKILL_CLIENT_SECRET || 'test_secret',
   DDB_TABLE_NAME: 'AlexaSyncSettings'
 });

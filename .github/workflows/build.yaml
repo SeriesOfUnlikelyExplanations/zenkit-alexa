@@ -39,6 +39,8 @@ jobs:
           cd lambda/householdList
           npm install
           npm run deploy-test
+          rm -rf node_modules/
+          npm install --production
 
       - name: Deploy
         run: |

@@ -204,7 +204,7 @@ const scheduledEventHandler = async (event, context) => {
     const promises = [];
     for (var userId of userIds) {
       const api = new SkillMessagingApi(
-        config.ALEXA_API_URL, config.SKILL_CLIENT_ID, config.SKILL_CLIENT_SECRET, userId);
+        config.SKILL_CLIENT_ID, config.SKILL_CLIENT_SECRET, userId);
       promises.push(api.sendMessage(event.message)
         .then(console.log('Skill message sent: ', userId))
         .catch(async (error) => {
@@ -219,9 +219,9 @@ const scheduledEventHandler = async (event, context) => {
           };
         })
       );
-      // add wait here based on feedback from Jesse
     }
     await Promise.all(promises);
+    console.log('success');
     context.succeed('context success')
   }
 };
