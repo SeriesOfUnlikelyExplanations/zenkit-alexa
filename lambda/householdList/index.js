@@ -2,9 +2,9 @@
 
 const Alexa = require('ask-sdk-core');
 const { DynamoDbPersistenceAdapter } = require('ask-sdk-dynamodb-persistence-adapter');
-const SkillMessagingApi = require('./api/skillMessaging.js');
-const SyncListClient = require('./client.js');
-const events = require('./events.js');
+const SkillMessagingApi = require('./client/skillMessaging.js');
+const SyncListClient = require('./client/client.js');
+const events = require('./client/events.js');
 const config = require('./config.js');
 
 const HouseholdListEventHandler = {

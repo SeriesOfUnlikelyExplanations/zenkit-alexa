@@ -1,7 +1,7 @@
 'use strict';
 
-const ZenkitSDK = require('./api/zenKit.js');
-const config = require('./config.js');
+const ZenkitSDK = require('zenkitsdk');
+const config = require('../config.js');
 const { backOff } =  require('exponential-backoff');
 
 /**
