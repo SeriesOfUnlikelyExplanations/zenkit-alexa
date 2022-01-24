@@ -15,8 +15,7 @@ const zenkit = require('./zenkitTestData.js');
 describe("Testing the skill", function() {
   this.timeout(3000);
   before(() => {
-    nock('https://api.amazonalexa.com')
-      .persist()
+    nock('https://api.amazonalexa.com').persist()
       .get('/v2/householdlists/')
       .reply(200, alexa.LISTS_DATA)
       .get('/v2/householdlists/todo_list_list_id/active/')
@@ -48,8 +47,7 @@ describe("Testing the skill", function() {
       .get('/v2/householdlists/custom_list_list_id/completed/')
       .reply(200, alexa.EMPTY_CUSTOM_LIST_DATA);
 
-    zenkitNock = nock('https://todo.zenkit.com:443')
-      .persist()
+    zenkitNock = nock('https://todo.zenkit.com').persist()
       .get('/api/v1/users/me/workspacesWithLists')
       .reply(200, zenkit.ZENKIT_WORKSPACE_DATA)
       .post('/api/v1/workspaces/442548/lists')

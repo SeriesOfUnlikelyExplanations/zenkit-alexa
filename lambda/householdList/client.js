@@ -88,7 +88,6 @@ class SyncListClient {
       if (!(Object.keys(zenkitLists).some(key => zenkitLists[key].name === zenkitListName))) {
         console.log('Creating list: ' + zenkitListName);
         const newList = await this.zenKitClient.createList(zenkitListName);
-        console.log(newList.id);
         zenkitLists[newList.id] = newList;
       };
     }
