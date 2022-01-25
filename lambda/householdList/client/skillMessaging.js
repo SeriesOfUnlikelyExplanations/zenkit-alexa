@@ -1,11 +1,10 @@
 const https = require('https');
-const request = require('request-promise-native');
 
 /**
  * Defines Alexa Skill Messaging API class
  */
 class SkillMessagingApi {
-  constructor(clientId, clientSecret, userId, apiUrl='https://api.amazonalexa.com', authHost = 'https://api.amazon.com') {
+  constructor(clientId, clientSecret, userId, apiUrl='api.amazonalexa.com', authHost = 'api.amazon.com') {
     this.apiUrl = apiUrl;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -72,23 +71,15 @@ class SkillMessagingApi {
   }
   
   handleRequest(host, scope, method = 'GET', parameters = {}) {
-    //~ Zenkit doesn't use querystrings
-    //~ queryParameters.ie = (new Date()).getTime();
-    //~ queryParameters.show_archived = false
     console.log(parameters);
     var queryString = '';
     var paramString = ''
-    //~ if ('query' in parameters && Object.entries(parameters.query).length > 0) {
-      //~ const queryString = `?${new URLSearchParams(queryParameters)}`;
-    //~ }
     const options = {
       hostname: host,
       port: 443,
       path: `/${scope}${queryString}`,
       method: method,
-      headers: {
-        'Cache-Control':'no-cache',
-      }
+      headers: { 'Cache-Control':'no-cache' }
     }
     if (parameters.keyType && parameters.key) {
       options.headers[parameters.keyType] = JSON.stringify(parameters.key);

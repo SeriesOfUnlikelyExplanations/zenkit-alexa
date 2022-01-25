@@ -30,11 +30,7 @@
     "ask-sdk-model": "^1.25.1",
     "aws-sdk": "^2.814.0",
     "exponential-backoff": "^3.1.0",
-    "import": "0.0.6",
-    "lodash": "^4.17.19",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.8",
-    "zenkitsdk": "^1.0.2",
+    "zenkitsdk": "^1.0.3",
     "ask-sdk-dynamodb-persistence-adapter": "^2.7.0"
   },
   "devDependencies": {

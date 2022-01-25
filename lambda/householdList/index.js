@@ -206,7 +206,7 @@ const scheduledEventHandler = async (event, context) => {
       const api = new SkillMessagingApi(
         config.SKILL_CLIENT_ID, config.SKILL_CLIENT_SECRET, userId);
       promises.push(api.sendMessage(event.message)
-        .then(console.log('Skill message sent: ', userId))
+        .then( (r) => { console.log('Skill message sent: ', r)})
         .catch(async (error) => {
           if (error.error.message && error.error.message === 'Invalid user id.') {
             await events.deleteUser(userId, config.DDB_TABLE_NAME)

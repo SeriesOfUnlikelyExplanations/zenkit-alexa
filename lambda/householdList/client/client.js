@@ -98,7 +98,6 @@ class SyncListClient {
     // Define get item properties function
     const getItemProperties = (alexaItem, zenkitItem) => ({
       alexaId: alexaItem.id,
-      zenKitUuidId: zenkitItem.uuid,
       zenKitEntryId: zenkitItem.id,
       status: alexaItem.status,
       updatedTime: new Date(alexaItem.updatedTime).toISOString(),
@@ -107,7 +106,6 @@ class SyncListClient {
     });
     for (var [zenkitListId, zenkitList] of Object.entries(zenkitLists)) {
       const promises = [];
-      console.log(zenkitLists);
       const alexaListName = this.mapZenkitToAlexaLists(zenkitList.name, zenkitLists);
       if (!(alexaListName)) { continue; }
       const alexaList = alexaLists[alexaListName];
@@ -237,7 +235,6 @@ class SyncListClient {
             ).then(function (res) {
               // Add new synced item
               syncedItems.push({
-                zenKitUuidId: res.uuid,
                 zenKitEntryId: res.id,
                 alexaId: alexaItem.id,
                 status: alexaItem.status,
@@ -295,7 +292,7 @@ class SyncListClient {
         if (index > -1) {
           promises.push(
             this.zenKitClient.deleteItem(
-              syncedList.listId, syncedItems[index].zenKitUuidId));
+              syncedList.listId, syncedItems[index].id));
           // Remove deleted synced item
           syncedItems.splice(index, 1);
         }
