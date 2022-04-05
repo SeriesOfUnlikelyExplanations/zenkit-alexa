@@ -53,3 +53,11 @@ if [[ $TARGET == "all" || $TARGET == "lambda" ]]; then
 fi
 
 exit 0
+
+
+
+ask smapi update-account-linking-info -s amzn1.ask.skill.eb6e6958-a33c-4050-a1f4-ceaeda2eddb1 -g live --account-linking-request {"accountLinkingRequest": { "skipOnEnablement": "true",    "type": "AUTH_CODE",    "authorizationUrl": "https://zenkit.com/api/v1/oauth/authorize",    "clientId": "7b43921c-0b3d-42f0-8475-90db0da058a9",    "accessTokenUrl": "https://zenkit.com/api/v1/oauth/token",    "clientSecret": "41f9f5ac579826a6b3c11bb25e6dba47d9802841c03a650e45c02e45244f4cb0a384b0ad2c05de2a071887bfc0190b69a07b8adcbb6a9cd818b353f6e5485309",    "accessTokenScheme": "REQUEST_BODY_CREDENTIALS",    "defaultTokenExpirationInSeconds": 86400,    "redirectUrls": [      "https://zenkit.com/en/integrations/"    ]      }}
+
+
+
+
