@@ -12,5 +12,6 @@ module.exports = Object.freeze({
   SKILL_APP_ID: process.env.SKILL_APP_ID,
   SKILL_CLIENT_ID: process.env.SKILL_CLIENT_ID || 'test_id',
   SKILL_CLIENT_SECRET: process.env.SKILL_CLIENT_SECRET || 'test_secret',
+
   DDB_TABLE_NAME: 'AlexaSyncSettings'
 });

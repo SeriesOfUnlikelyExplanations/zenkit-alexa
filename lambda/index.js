@@ -20,7 +20,8 @@ const HouseholdListEventHandler = {
       if (attributes.hold) {
         console.log('User is locked for time-base sync');
       } else {
-        var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
+        console.log(attributes);
+        const accessToken = attributes.zenkitApiKey || handlerInput.requestEnvelope.context.System.user.accessToken;
         // if accessToken is missing, inform the customer throught their ToDo list.
         if (accessToken == undefined){
           const client = new SyncListClient(
@@ -68,7 +69,6 @@ const SkillEventHandler = {
   async handle(handlerInput) {
     try {
       // Get user attributes
-      var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
       const attributes = {
         userId: Alexa.getUserId(handlerInput.requestEnvelope),
         hold: true
@@ -78,10 +78,16 @@ const SkillEventHandler = {
       await handlerInput.attributesManager.savePersistentAttributes();
       // Determine accepted permissions
       const permissions = (handlerInput.requestEnvelope.request.body.acceptedPermissions || []).map(
-        permission => permission.scope.split(':').pop());
-
+      permission => permission.scope.split(':').pop());
+      // Create zenKit list sync event schedule
+      if (handlerInput.context.invokedFunctionArn) { //don't setup sechdule if running locally.
+        await events.createSchedule(
+          handlerInput.context.invokedFunctionArn, Alexa.getUserId(handlerInput.requestEnvelope));
+        console.info('Event schedule has been created.');
+      };
       // Update alexa list if read/write permissions accepted, otherwise clean up database
       if ((permissions.includes('read') && permissions.includes('write')) || Alexa.getRequestType(handlerInput.requestEnvelope) === 'AlexaSkillEvent.SkillAccountLinked' ) {
+        var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
         // Initialize sync list client
         const client = new SyncListClient(
           handlerInput.serviceClientFactory.getListManagementServiceClient(), accessToken);
@@ -98,12 +104,6 @@ const SkillEventHandler = {
         handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
         console.info('User attributes have been saved.');
-        // Create zenKit list sync event schedule
-        if (handlerInput.context.invokedFunctionArn) { //don't setup sechdule if running locally.
-          await events.createSchedule(
-            handlerInput.context.invokedFunctionArn, Alexa.getUserId(handlerInput.requestEnvelope));
-          console.info('Event schedule has been created.');
-        };
       } else {
         // Delete user attributes to database
         await handlerInput.attributesManager.deletePersistentAttributes();
@@ -131,7 +131,7 @@ const SkillMessagingHandler = {
       handlerInput.attributesManager.setPersistentAttributes(attributes);
       await handlerInput.attributesManager.savePersistentAttributes();
       // get access token. if accessToken is missing, stop.
-      var accessToken = handlerInput.requestEnvelope.context.System.user.accessToken;
+      var accessToken = attributes.zenkitApiKey || handlerInput.requestEnvelope.context.System.user.accessToken;
       if (accessToken == undefined){
         await handlerInput.attributesManager.deletePersistentAttributes();
         throw 'Missing token on time-based sync - deleted persistent attributes';

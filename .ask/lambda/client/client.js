@@ -9,7 +9,11 @@ const { backOff } =  require('exponential-backoff');
  */
 class SyncListClient {
   constructor(householdListManager, key, syncedLists = []) {
-    this.zenKitClient = new ZenkitSDK(key, { keyType: 'Authorization' });
+    if (key.length > 50) {
+      this.zenKitClient = new ZenkitSDK(key, { keyType: 'Authorization' });
+    } else {
+      this.zenKitClient = new ZenkitSDK(key, { keyType: 'Zenkit-API-Key' });
+    }
     this.householdListManager = householdListManager;
     this.syncedLists = syncedLists;
   }

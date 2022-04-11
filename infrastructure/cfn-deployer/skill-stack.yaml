@@ -27,7 +27,15 @@ Resources:
                 - sts:AssumeRole
         Path: /
         Policies:
-          - PolicyName: alexaSkillExecutionPolicy
+          - PolicyName: ddbPolicy
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:*
+                  Resource: arn:aws:dynamodb:*:*:table/AlexaSyncSettings
+          - PolicyName: logPolicy
             PolicyDocument:
               Version: 2012-10-17
               Statement:
@@ -35,6 +43,15 @@ Resources:
                   Action:
                     - logs:*
                   Resource: arn:aws:logs:*:*:*
+          - PolicyName: eventsPolicy
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - events:*
+                  Resource: arn:aws:events:*:*:rule/*
+        
   AlexaSkillFunction:
     Type: AWS::Lambda::Function
     Properties:

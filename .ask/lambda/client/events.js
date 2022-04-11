@@ -2,7 +2,7 @@
 
 const AWS = require('aws-sdk');
 // Set region to lambda function one (default: us-east-1)
-AWS.config.update({region: process.env.AWS_REGION || 'us-east-1'});
+AWS.config.update({region: process.env.AWS_REGION || 'us-west-2'});
 // Create CloudWatchEvents service object
 const cwevents = new AWS.CloudWatchEvents();
 // Create Lambda service object
