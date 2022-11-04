@@ -1,3 +1,6 @@
+# This project no longer functions correctly
+I'm going to leave it up in case it helps people build Alexa list skills, but the Zenkit sync is no longer functioning. Zenkit has made several undocumented breaking changes over the last year and I'm not interested in spending the time fixing it only to have it break again.
+
 # alexa-zenkit-sync
 
 Unofficial Zenkit Alexa List Sync Skill
