@@ -37,7 +37,7 @@
     "aws-lambda-mock-context": "^3.2.1",
     "aws-sdk-mock": "^5.1.0",
     "chai": "^4.2.0",
-    "mocha": "^9.2.0",
+    "mocha": "^9.2.2",
     "nock": "^13.2.2",
     "nyc": "^15.1.0"
   }
